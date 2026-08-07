@@ -1,4 +1,4 @@
-# ASC-CONFIG v1.8.0
+# ASC-CONFIG v1.8.1
 
 Web app tra cứu **Config** và **Các lưu ý** vận hành, đọc dữ liệu trực tiếp từ Google Sheet.
 
@@ -201,6 +201,8 @@ Mỗi lần mở chi tiết một bản ghi được tính là **một lượt x
 **một lượt chép**. Bấm biểu tượng biểu đồ trên thanh tiêu đề để mở bảng **Thống kê sử dụng**:
 
 - Xếp hạng bản ghi theo lượt chép, lượt xem, thời điểm gần nhất hoặc theo tên
+  (badge loại và nhãn nằm ở hai cột riêng nên mã config dài bao nhiêu cũng xuống dòng gọn
+  trong cột của nó, không đẩy layout)
 - Tổng số bản ghi đã tra cứu, tổng lượt xem, tổng lượt chép
 - Xuất CSV hoặc xóa toàn bộ số liệu
 
