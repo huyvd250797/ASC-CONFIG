@@ -29,8 +29,10 @@ export type SheetDefinition = {
   columns: string[];
   /** Nhãn hiển thị của từng cột trong popup chi tiết */
   columnLabels: string[];
-  /** Dòng đầu tiên chứa dữ liệu thật (1-based) */
+  /** Dòng đầu tiên chứa dữ liệu thật (1-based) — chỉ dùng khi không nhận ra dòng tiêu đề */
   firstDataRow: number;
+  /** Từ khóa nhận diện dòng tiêu đề của sheet (đã bỏ dấu) */
+  headerWords: string[];
 };
 
 export const SHEETS: SheetDefinition[] = [
@@ -43,6 +45,7 @@ export const SHEETS: SheetDefinition[] = [
     columns: ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
     columnLabels: ['STT', 'Phân hệ', 'Mã Config', 'Module', 'Màn hình / Chức năng', 'Mô tả chức năng', 'Value'],
     firstDataRow: 6,
+    headerWords: ['stt', 'phan he', 'ma config', 'module', 'man hinh', 'mo ta', 'value'],
   },
   {
     kind: 'note',
@@ -53,6 +56,7 @@ export const SHEETS: SheetDefinition[] = [
     columns: ['A', 'B', 'C', 'D', 'E'],
     columnLabels: ['STT', 'Module', 'Vấn đề / Màn hình', 'Chi tiết', 'Hướng xử lý'],
     firstDataRow: 3,
+    headerWords: ['stt', 'module', 'van de', 'chi tiet', 'huong xu ly', 'man hinh'],
   },
 ];
 
@@ -236,11 +240,65 @@ export type SheetPayload = {
   signature: string;
 };
 
+/** Chuẩn hóa một ô tiêu đề: bỏ dấu, quy ký tự phân cách về khoảng trắng. */
+function headerText(value: string) {
+  return normalizeText(value)
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Tìm dòng tiêu đề của sheet dựa trên nội dung thật.
+ *
+ * Neo vào dòng tiêu đề đáng tin hơn nhiều so với đếm số dòng: phần đầu sheet có thể có
+ * dòng gộp ô, dòng trống, hoặc bị thêm/bớt về sau, và GViz cũng có thể tự tách bớt vài
+ * dòng đầu. Dữ liệu luôn bắt đầu ngay sau dòng tiêu đề.
+ *
+ * Một dòng chỉ được coi là tiêu đề khi thỏa CẢ HAI điều kiện:
+ *  - khớp ít nhất 3 từ khóa tiêu đề KHÁC NHAU;
+ *  - phần lớn (>= 70%) số ô có nội dung của dòng đó đều là nhãn tiêu đề.
+ * Điều kiện thứ hai để một dòng dữ liệu tình cờ chứa vài từ khóa không bị nhận nhầm.
+ *
+ * Trả về -1 nếu không nhận ra dòng nào.
+ */
+function findHeaderRow(rows: string[][], headerWords: string[]) {
+  const limit = Math.min(rows.length, 40);
+  let found = -1;
+
+  for (let index = 0; index < limit; index += 1) {
+    const matchedWords = new Set<string>();
+    let filled = 0;
+    let matchedCells = 0;
+
+    for (const cell of rows[index]) {
+      const text = headerText(cell);
+      if (!text) continue;
+      filled += 1;
+      // Nhãn tiêu đề luôn ngắn; đoạn văn dài chắc chắn là dữ liệu.
+      if (text.length > 40) continue;
+
+      const hit = headerWords.filter((word) => text === word || text.startsWith(`${word} `) || text.includes(word));
+      if (hit.length) {
+        matchedCells += 1;
+        for (const word of hit) matchedWords.add(word);
+      }
+    }
+
+    if (!filled) continue;
+    if (matchedWords.size >= 3 && matchedCells / filled >= 0.7) found = index;
+  }
+  return found;
+}
+
 export function parseSheet(sheet: SheetDefinition, response: GoogleResponse): SheetPayload {
   const size = sheet.columns.length;
   const allRows = extractSheetRows(response, size);
-  // firstDataRow là số dòng 1-based trên Sheet.
-  const rows = allRows.slice(Math.max(0, sheet.firstDataRow - 1));
+
+  // Ưu tiên neo vào dòng tiêu đề thật; firstDataRow chỉ là phương án dự phòng.
+  const headerRow = findHeaderRow(allRows, sheet.headerWords);
+  const start = headerRow >= 0 ? headerRow + 1 : Math.max(0, sheet.firstDataRow - 1);
+  const rows = allRows.slice(start);
 
   const records: AppRecord[] = [];
   for (const values of rows) {

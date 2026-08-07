@@ -11,8 +11,10 @@ import {
   BarChart3,
   Radio,
   RefreshCw,
+  Moon,
   RotateCcw,
   Rows3,
+  Sun,
   Search,
   X,
 } from 'lucide-react';
@@ -38,6 +40,7 @@ import { CardList } from './components/CardList';
 import { DetailModal } from './components/DetailModal';
 import { StatsModal } from './components/StatsModal';
 import { useToast } from './lib/toast';
+import { useTheme } from './lib/theme';
 import type { SortState } from './components/common';
 
 /** Chu kỳ kiểm tra Google Sheet (ms). */
@@ -136,6 +139,7 @@ export default function App() {
   const [realtime, setRealtime] = useState(true);
   const [statsOpen, setStatsOpen] = useState(false);
   const notify = useToast();
+  const { theme, toggle: toggleTheme } = useTheme();
 
   const [queryInput, setQueryInput] = useState('');
   const [query, setQuery] = useState('');
@@ -494,6 +498,15 @@ export default function App() {
             title={realtime ? 'Tắt tự động cập nhật' : 'Bật tự động cập nhật'}
           >
             <Radio size={16} />
+          </button>
+          <button
+            type="button"
+            className="icon-toggle"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Chuyển sang nền sáng' : 'Chuyển sang nền tối'}
+            aria-label="Đổi chế độ hiển thị"
+          >
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           </button>
           <button
             type="button"

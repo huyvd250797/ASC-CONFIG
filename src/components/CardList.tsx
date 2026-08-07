@@ -30,11 +30,11 @@ export function CardList({ records, tokens, onSelect }: Props) {
   return (
     <div className="card-list">
       {records.map((record) => {
-        const tone =
+        const hue =
           record.kind === 'config' ? toneFor('phanHe', record.phanHe) : toneFor('module', record.module);
 
         return (
-          <article key={record.id} className="record-card" style={toneVars(tone)} onClick={() => onSelect(record)}>
+          <article key={record.id} className="record-card" style={toneVars(hue)} onClick={() => onSelect(record)}>
             <header>
               <span className="card-stt">#{record.stt}</span>
               <span className="chip-tone">
