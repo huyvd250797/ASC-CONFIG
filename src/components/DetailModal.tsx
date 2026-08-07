@@ -167,17 +167,6 @@ export function DetailModal({ record, onClose }: Props) {
             </>
           )}
 
-          <details className="raw-panel">
-            <summary>Toàn bộ cột từ Google Sheet</summary>
-            {Object.entries(record.raw)
-              .filter(([, value]) => value)
-              .map(([key, value]) => (
-                <div className="detail-row" key={key}>
-                  <span>{key}</span>
-                  <p className="multiline">{value}</p>
-                </div>
-              ))}
-          </details>
         </div>
       </section>
     </div>

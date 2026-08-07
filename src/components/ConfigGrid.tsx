@@ -77,7 +77,9 @@ export function ConfigGrid({ records, tokens, sort, onSort, onSelect }: Props) {
                     onClick={(event) => void copyCode(event, record)}
                     title={`Bấm để sao chép: ${record.maConfig}`}
                   >
-                    <Highlight text={record.maConfig} tokens={tokens} />
+                    <span className="ma-config-text">
+                      <Highlight text={record.maConfig} tokens={tokens} />
+                    </span>
                     <Copy size={12} className="copy-hint" />
                   </button>
                 ) : (
