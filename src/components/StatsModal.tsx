@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, Copy, Download, Eye, RotateCcw, X } from 'lucide-react';
 import { resetUsage, useUsage, type UsageEntry } from '../lib/stats';
 import { useToast } from '../lib/toast';
+import { usePinGate } from '../lib/pin';
 
 type SortKey = 'copies' | 'views' | 'lastAt' | 'label';
 
@@ -26,6 +27,7 @@ function formatTime(value: number) {
 export function StatsModal({ onClose }: { onClose: () => void }) {
   const entries = useUsage();
   const notify = useToast();
+  const requirePin = usePinGate();
   const [sortKey, setSortKey] = useState<SortKey>('copies');
   const [descending, setDescending] = useState(true);
 
@@ -72,7 +74,10 @@ export function StatsModal({ onClose }: { onClose: () => void }) {
     }
   };
 
-  const exportCsv = () => {
+  const exportCsv = async () => {
+    const allowed = await requirePin('Xuất file thống kê', 'Thao tác này cần mã PIN quản trị.');
+    if (!allowed) return;
+
     const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
     const header = ['Loại', 'Mã Config / Vấn đề', 'Lượt xem', 'Lượt chép', 'Gần nhất'];
     const rows = sorted.map((entry: UsageEntry) => [
@@ -92,7 +97,9 @@ export function StatsModal({ onClose }: { onClose: () => void }) {
     notify({ kind: 'success', title: 'Đã xuất file thống kê' });
   };
 
-  const clearAll = () => {
+  const clearAll = async () => {
+    const allowed = await requirePin('Xóa số liệu thống kê', 'Thao tác không thể hoàn tác, cần mã PIN quản trị.');
+    if (!allowed) return;
     resetUsage();
     notify({ kind: 'info', title: 'Đã xóa toàn bộ số liệu thống kê' });
   };
@@ -108,11 +115,11 @@ export function StatsModal({ onClose }: { onClose: () => void }) {
             </p>
           </div>
           <div className="detail-actions">
-            <button type="button" className="copy-button" onClick={exportCsv} disabled={!entries.length}>
+            <button type="button" className="copy-button" onClick={() => void exportCsv()} disabled={!entries.length}>
               <Download size={14} />
               Xuất CSV
             </button>
-            <button type="button" className="copy-button danger" onClick={clearAll} disabled={!entries.length}>
+            <button type="button" className="copy-button danger" onClick={() => void clearAll()} disabled={!entries.length}>
               <RotateCcw size={14} />
               Xóa
             </button>

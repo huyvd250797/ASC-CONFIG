@@ -51,7 +51,9 @@ export function CardList({ records, tokens, onSelect }: Props) {
                     onClick={(event) => void copyCode(event, record)}
                     title={`Bấm để sao chép: ${record.maConfig}`}
                   >
-                    <Highlight text={record.maConfig} tokens={tokens} />
+                    <span className="ma-config-text">
+                      <Highlight text={record.maConfig} tokens={tokens} />
+                    </span>
                     <Copy size={12} className="copy-hint" />
                   </button>
                 </h3>
