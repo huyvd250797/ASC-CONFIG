@@ -160,8 +160,14 @@ export function StatsModal({ onClose }: { onClose: () => void }) {
                   <tr key={entry.key}>
                     <td className="stat-rank">{index + 1}</td>
                     <td className="stat-label">
-                      <span className={`tag-loai ${entry.kind}`}>{entry.kind === 'config' ? 'CONFIG' : 'LƯU Ý'}</span>
-                      <span className={entry.kind === 'config' ? 'stat-code' : ''}>{entry.label}</span>
+                      {/* Badge và nhãn là hai cột riêng: mã config dài sẽ tự xuống dòng
+                          trong cột của nó thay vì bị đẩy xuống dưới badge. */}
+                      <div className="stat-label-inner">
+                        <span className={`tag-loai ${entry.kind}`}>{entry.kind === 'config' ? 'CONFIG' : 'LƯU Ý'}</span>
+                        <span className={entry.kind === 'config' ? 'stat-code' : 'stat-title'} title={entry.label}>
+                          {entry.label}
+                        </span>
+                      </div>
                     </td>
                     <td className="stat-num">
                       <Eye size={13} /> {entry.views}
