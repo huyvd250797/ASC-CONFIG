@@ -1,4 +1,4 @@
-# ASC-CONFIG v1.6.0
+# ASC-CONFIG v1.7.0
 
 Web app tra cứu **Config** và **Các lưu ý** vận hành, đọc dữ liệu trực tiếp từ Google Sheet.
 
@@ -44,12 +44,22 @@ lấy đúng cột theo vị trí và bỏ qua phần tiêu đề bằng `offset
 
 Dòng trống và dòng chỉ có mỗi số thứ tự sẽ bị bỏ qua.
 
-**Về việc cắt dòng tiêu đề.** App không dùng `offset` của GViz. Lý do: dù đã yêu cầu
-`headers=0`, GViz vẫn có thể tự tách một vài dòng đầu ra làm tiêu đề và không đưa vào `rows`,
-khiến `offset` cắt thừa và mất mất dòng dữ liệu đầu tiên. Thay vào đó app đọc
-`table.parsedNumHeaders` — con số cho biết chính xác GViz đã tách bao nhiêu dòng — rồi bù lại
-đúng bằng ấy dòng trước khi cắt theo `firstDataRow`. Nhờ vậy dòng 6 của sheet CONFIG luôn được
-lấy đúng, không phụ thuộc vào phỏng đoán.
+**Về việc cắt phần tiêu đề.** Đếm số dòng là cách kém tin cậy: phần đầu sheet có dòng gộp ô,
+dòng trống, và có thể bị thêm/bớt về sau; GViz thì dù đã yêu cầu `headers=0` vẫn có thể tự tách
+vài dòng đầu ra làm tiêu đề và không đưa vào `rows`. Hai chuyện đó cộng lại từng làm mất dòng
+dữ liệu đầu tiên.
+
+App vì vậy **neo vào dòng tiêu đề thật**:
+
+1. Đọc `table.parsedNumHeaders` để bù lại đúng số dòng GViz đã tách (dòng tiêu đề đầu vẫn còn
+   nguyên nội dung trong nhãn cột nên khôi phục được).
+2. Quét 40 dòng đầu, tìm dòng tiêu đề bằng nội dung: phải khớp ít nhất 3 từ khóa tiêu đề khác
+   nhau *và* ít nhất 70% số ô có nội dung của dòng đó là nhãn tiêu đề. Điều kiện thứ hai để một
+   dòng dữ liệu tình cờ chứa vài từ khóa không bị nhận nhầm.
+3. Dữ liệu bắt đầu ngay sau dòng tiêu đề khớp cuối cùng (xử lý được tiêu đề nhiều tầng).
+
+`firstDataRow` chỉ còn là phương án dự phòng khi không nhận ra dòng tiêu đề nào. Nhờ cách này,
+thêm hay bớt dòng ở đầu sheet đều không làm lệch dữ liệu và không mất dòng nào.
 
 Muốn đổi vị trí cột hoặc dòng bắt đầu: sửa `columns` / `firstDataRow` trong mảng `SHEETS`
 và hằng `LOOKUP_SHEET` ở `src/lib/sheets.ts` — không cần đụng vào phần giao diện.
@@ -114,6 +124,20 @@ Khi popup mở ra, nền bị khoá cuộn hoàn toàn — chỉ cuộn được
 Các vùng cuộn đều đặt `overscroll-behavior: contain` để cuộn hết nội dung không bị lan ra ngoài.
 
 Dưới 960px bố cục tự trả về kiểu cuộn trang thông thường cho hợp với điện thoại.
+
+## Nền tối / nền sáng
+
+Bấm biểu tượng mặt trời/mặt trăng trên thanh tiêu đề để đổi giữa hai chế độ. **Mặc định là nền
+tối**; lựa chọn được nhớ ở `localStorage` nên mở lại trang vẫn giữ nguyên.
+
+Toàn bộ màu sắc đi qua một bộ biến CSS, `data-theme` trên thẻ `<html>` quyết định dùng bảng nào,
+nên không có màu nào bị "cứng" ở một chế độ.
+
+Màu của Phân hệ và Module chỉ được cấp **hue**; độ sáng thì tính riêng cho từng hue ở
+`src/lib/colors.ts` bằng cách dò tới khi đạt ngưỡng tương phản WCAG AA trên nền tương ứng.
+Lý do: cùng một độ sáng HSL nhưng mắt người thấy vàng sáng hơn xanh dương rất nhiều — để chung
+một con số thì chip vàng và xanh lá sẽ chìm hẳn trên nền trắng. Cả 16 màu hiện đạt tỉ lệ tương
+phản tối thiểu 4.8 ở nền tối và 4.8 ở nền sáng.
 
 ## Làm mới
 
@@ -206,9 +230,10 @@ src/
   styles.css                  Toàn bộ giao diện
   lib/sheets.ts               Đọc Google Sheet theo vị trí cột, đọc danh mục, so sánh thay đổi
   lib/text.ts                 Bỏ dấu, tokenize, thuật toán tìm gần đúng, tô sáng từ khóa
-  lib/colors.ts               Cấp phát màu cho Phân hệ và Module
+  lib/colors.ts               Cấp hue cho Phân hệ / Module và tính độ sáng đạt tương phản
   lib/clipboard.ts            Sao chép có đường lui khi không có Clipboard API
   lib/stats.ts                Thống kê lượt xem / lượt chép, lưu ở localStorage
+  lib/theme.ts                Chuyển nền tối / nền sáng, nhớ lựa chọn
   lib/toast.tsx               Hệ thống thông báo dùng chung
   components/ConfigGrid.tsx   Lưới sheet CONFIG
   components/NoteGrid.tsx     Lưới sheet Các lưu ý

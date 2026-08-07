@@ -4,22 +4,139 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --radius: 14px;
+
+  /* Kênh màu dùng chung — mọi biến thể độ mờ đều dựng lại từ đây */
+  --accent-rgb: 74, 163, 255;
+  --green-rgb: 61, 220, 151;
+  --amber-rgb: 246, 185, 59;
+  --danger-rgb: 255, 122, 122;
+
+  color-scheme: dark;
+}
+
+/* ===================== NỀN TỐI (mặc định) ===================== */
+
+:root,
+:root[data-theme='dark'] {
+  --neutral-rgb: 148, 168, 200;
+  /* Lớp phủ nhẹ đặt lên nền: nền tối dùng màu trắng, nền sáng dùng màu mực */
+  --fill-rgb: 255, 255, 255;
+  --sunken-rgb: 8, 16, 29;
+  --code-bg-rgb: 6, 14, 26;
+  --shadow-rgb: 0, 0, 0;
+
   --bg: #070d18;
+  --body-grad: radial-gradient(1100px 520px at 12% -10%, rgba(var(--accent-rgb), 0.16), transparent 70%),
+    radial-gradient(900px 460px at 92% 4%, rgba(var(--green-rgb), 0.09), transparent 68%),
+    linear-gradient(180deg, #0a1425 0%, #070d18 45%, #05090f 100%);
+
   --panel: rgba(15, 26, 44, 0.86);
   --panel-2: rgba(20, 34, 56, 0.7);
-  --line: rgba(148, 168, 200, 0.16);
-  --line-strong: rgba(148, 168, 200, 0.3);
+  --head-bg: #0e1b2e;
+  --modal-bg: #0c1728;
+  --option-bg: #0d1a2c;
+  --toast-bg: rgba(13, 24, 40, 0.97);
+  --backdrop: rgba(3, 7, 14, 0.74);
+
+  --line: rgba(var(--neutral-rgb), 0.16);
+  --line-strong: rgba(var(--neutral-rgb), 0.3);
   --text: #e8eef9;
   --muted: #93a2ba;
   --dim: #6d7f99;
-  --blue: #4aa3ff;
-  --amber: #f6b93b;
-  --green: #3ddc97;
-  --danger: #ff7a7a;
-  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --radius: 14px;
-  --shadow: 0 22px 60px rgba(0, 0, 0, 0.42);
 
+  --accent: #4aa3ff;
+  --accent-2: #6fc0ff;
+  --on-accent: #04121f;
+  --link: #8ec9ff;
+  --green: #3ddc97;
+  --green-soft: #9ad9bd;
+  --amber: #f6b93b;
+  --danger: #ff7a7a;
+  --danger-fg: #ffd0d0;
+
+  --mark-bg: rgba(var(--amber-rgb), 0.3);
+  --mark-fg: #ffe9b6;
+  --code-fg: #cfe3ff;
+  --value-fg: #b9f4d8;
+  --tag-config-fg: #9fd2ff;
+  --tag-note-fg: #ffd88f;
+
+  --shadow: 0 22px 60px rgba(var(--shadow-rgb), 0.42);
+  --row-alt: rgba(var(--fill-rgb), 0.018);
+
+  /* Thông số dựng màu theo hue của Phân hệ / Module */
+  --tone-s-fg: 82%;
+  --tone-s-strong: 95%;
+  --tone-l-bg: 55%;
+  --tone-a-bg: 0.15;
+  --tone-l-line: 60%;
+  --tone-a-line: 0.45;
+  --code-glow: 0 0 22px color-mix(in srgb, var(--tone-strong) 38%, transparent);
+}
+
+/* ===================== NỀN SÁNG ===================== */
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --neutral-rgb: 96, 118, 150;
+  --fill-rgb: 18, 38, 66;
+  --sunken-rgb: 232, 238, 247;
+  --code-bg-rgb: 240, 244, 251;
+  --shadow-rgb: 26, 45, 75;
+
+  --bg: #f2f5fa;
+  --body-grad: radial-gradient(1100px 520px at 12% -10%, rgba(var(--accent-rgb), 0.14), transparent 70%),
+    radial-gradient(900px 460px at 92% 4%, rgba(var(--green-rgb), 0.1), transparent 68%),
+    linear-gradient(180deg, #f7f9fd 0%, #eef2f9 55%, #e7ecf5 100%);
+
+  --panel: rgba(255, 255, 255, 0.88);
+  --panel-2: rgba(255, 255, 255, 0.72);
+  --head-bg: #e6ecf6;
+  --modal-bg: #ffffff;
+  --option-bg: #ffffff;
+  --toast-bg: rgba(255, 255, 255, 0.98);
+  --backdrop: rgba(24, 38, 60, 0.38);
+
+  --line: rgba(var(--neutral-rgb), 0.22);
+  --line-strong: rgba(var(--neutral-rgb), 0.38);
+  --text: #17273f;
+  --muted: #5b6d88;
+  --dim: #8695ab;
+
+  --accent: #1877d6;
+  --accent-2: #3fa0f5;
+  --on-accent: #ffffff;
+  --link: #1466c0;
+  --green: #12915f;
+  --green-soft: #2c7f5f;
+  --amber: #b4780a;
+  --danger: #cf3b3b;
+  --danger-fg: #8a2020;
+
+  --mark-bg: rgba(var(--amber-rgb), 0.42);
+  --mark-fg: #5a3d00;
+  --code-fg: #1f3556;
+  --value-fg: #0d6a48;
+  --tag-config-fg: #14609f;
+  --tag-note-fg: #8a5c05;
+
+  --shadow: 0 18px 44px rgba(var(--shadow-rgb), 0.14);
+  --row-alt: rgba(var(--fill-rgb), 0.028);
+
+  /* Nền sáng cần chữ đậm màu hơn để đủ tương phản */
+  --tone-s-fg: 68%;
+  --tone-s-strong: 82%;
+  --tone-l-bg: 55%;
+  --tone-a-bg: 0.14;
+  --tone-l-line: 45%;
+  --tone-a-line: 0.4;
+  --code-glow: none;
+}
+
+html {
   color: var(--text);
   background: var(--bg);
 }
@@ -28,10 +145,31 @@
   box-sizing: border-box;
 }
 
-/* Thanh cuộn mảnh, bo tròn, hòa vào nền tối */
+/* Màu dẫn xuất từ hue của Phân hệ/Module — mỗi element tự tính theo hue nó thừa kế,
+   nên chuyển theme là toàn bộ chip đổi độ sáng theo, không cần tính lại ở JS. */
+* {
+  --tone-fg: hsl(var(--tone-hue, 215) var(--tone-s-fg) var(--tone-lf));
+  --tone-strong: hsl(var(--tone-hue, 215) var(--tone-s-strong) var(--tone-ls));
+  --tone-bg: hsl(var(--tone-hue, 215) 70% var(--tone-l-bg) / var(--tone-a-bg));
+  --tone-line: hsl(var(--tone-hue, 215) 72% var(--tone-l-line) / var(--tone-a-line));
+}
+
+/* Độ sáng của mỗi hue được tính sẵn riêng cho từng theme (xem src/lib/colors.ts). */
+:root *,
+:root[data-theme='dark'] * {
+  --tone-lf: var(--tone-lfd, 76%);
+  --tone-ls: var(--tone-lsd, 70%);
+}
+
+:root[data-theme='light'] * {
+  --tone-lf: var(--tone-lfl, 34%);
+  --tone-ls: var(--tone-lsl, 38%);
+}
+
+/* Thanh cuộn mảnh, bo tròn, hòa vào nền */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(140, 165, 200, 0.3) transparent;
+  scrollbar-color: rgba(var(--neutral-rgb), 0.3) transparent;
 }
 
 ::-webkit-scrollbar {
@@ -45,7 +183,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(140, 165, 200, 0.28);
+  background-color: rgba(var(--neutral-rgb), 0.28);
   background-clip: content-box;
   border: 3px solid transparent;
   border-radius: 999px;
@@ -53,12 +191,12 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(160, 190, 230, 0.5);
+  background-color: rgba(var(--neutral-rgb), 0.5);
   background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:active {
-  background-color: rgba(110, 190, 255, 0.65);
+  background-color: rgba(var(--accent-rgb), 0.65);
   background-clip: content-box;
 }
 
@@ -83,10 +221,8 @@ body {
 body {
   margin: 0;
   min-width: 320px;
-  background:
-    radial-gradient(1100px 520px at 12% -10%, rgba(74, 163, 255, 0.16), transparent 70%),
-    radial-gradient(900px 460px at 92% 4%, rgba(61, 220, 151, 0.09), transparent 68%),
-    linear-gradient(180deg, #0a1425 0%, #070d18 45%, #05090f 100%);
+  color: var(--text);
+  background: var(--body-grad);
   background-attachment: fixed;
 }
 
@@ -107,12 +243,12 @@ button:disabled {
 }
 
 a {
-  color: #8ec9ff;
+  color: var(--link);
 }
 
 mark {
-  background: rgba(246, 185, 59, 0.3);
-  color: #ffe9b6;
+  background: var(--mark-bg);
+  color: var(--mark-fg);
   border-radius: 3px;
   padding: 0 2px;
 }
@@ -182,9 +318,9 @@ mark {
   font-weight: 800;
   letter-spacing: 0.04em;
   font-size: 15px;
-  color: #04121f;
-  background: linear-gradient(135deg, #6fc0ff, #3ddc97);
-  box-shadow: 0 10px 26px rgba(74, 163, 255, 0.32);
+  color: var(--on-accent);
+  background: linear-gradient(135deg, var(--accent-2), var(--green));
+  box-shadow: 0 10px 26px rgba(var(--accent-rgb), 0.32);
 }
 
 .brand h1 {
@@ -219,7 +355,7 @@ mark {
 
 .live-dot.on {
   background: var(--green);
-  box-shadow: 0 0 0 0 rgba(61, 220, 151, 0.55);
+  box-shadow: 0 0 0 0 rgba(var(--green-rgb), 0.55);
   animation: pulse 2s infinite;
 }
 
@@ -229,10 +365,10 @@ mark {
 
 @keyframes pulse {
   70% {
-    box-shadow: 0 0 0 9px rgba(61, 220, 151, 0);
+    box-shadow: 0 0 0 9px rgba(var(--green-rgb), 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(61, 220, 151, 0);
+    box-shadow: 0 0 0 0 rgba(var(--green-rgb), 0);
   }
 }
 
@@ -258,7 +394,7 @@ mark {
   height: 30px;
   border-radius: 9px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(var(--fill-rgb), 0.04);
   color: var(--muted);
   transition: 0.16s;
 }
@@ -270,8 +406,8 @@ mark {
 
 .icon-toggle.active {
   color: var(--green);
-  border-color: rgba(61, 220, 151, 0.42);
-  background: rgba(61, 220, 151, 0.1);
+  border-color: rgba(var(--green-rgb), 0.42);
+  background: rgba(var(--green-rgb), 0.1);
 }
 
 /* ---------- Tab Loại ---------- */
@@ -316,7 +452,7 @@ mark {
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(var(--fill-rgb), 0.08);
 }
 
 .kind-tab:hover {
@@ -325,25 +461,25 @@ mark {
 }
 
 .kind-tab.config.active {
-  color: #cbe6ff;
-  border-color: rgba(74, 163, 255, 0.55);
-  background: rgba(74, 163, 255, 0.14);
-  box-shadow: inset 0 0 0 1px rgba(74, 163, 255, 0.16);
+  color: var(--tag-config-fg);
+  border-color: rgba(var(--accent-rgb), 0.55);
+  background: rgba(var(--accent-rgb), 0.14);
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.16);
 }
 
 .kind-tab.config.active b {
-  background: rgba(74, 163, 255, 0.28);
+  background: rgba(var(--accent-rgb), 0.28);
 }
 
 .kind-tab.note.active {
-  color: #ffe6b6;
-  border-color: rgba(246, 185, 59, 0.55);
-  background: rgba(246, 185, 59, 0.13);
-  box-shadow: inset 0 0 0 1px rgba(246, 185, 59, 0.16);
+  color: var(--tag-note-fg);
+  border-color: rgba(var(--amber-rgb), 0.55);
+  background: rgba(var(--amber-rgb), 0.13);
+  box-shadow: inset 0 0 0 1px rgba(var(--amber-rgb), 0.16);
 }
 
 .kind-tab.note.active b {
-  background: rgba(246, 185, 59, 0.28);
+  background: rgba(var(--amber-rgb), 0.28);
 }
 
 /* ---------- Toolbar ---------- */
@@ -357,13 +493,13 @@ mark {
   padding: 5px 6px 5px 13px;
   border: 1px solid var(--line-strong);
   border-radius: 12px;
-  background: rgba(8, 16, 29, 0.72);
+  background: rgba(var(--sunken-rgb), 0.72);
   transition: 0.16s;
 }
 
 .search-box:focus-within {
-  border-color: rgba(74, 163, 255, 0.55);
-  box-shadow: 0 0 0 3px rgba(74, 163, 255, 0.12);
+  border-color: rgba(var(--accent-rgb), 0.55);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.12);
 }
 
 .search-box > svg {
@@ -398,7 +534,7 @@ mark {
 
 .clear-button:hover {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(var(--fill-rgb), 0.07);
 }
 
 .search-submit {
@@ -408,8 +544,8 @@ mark {
   border-radius: 9px;
   font-weight: 600;
   font-size: 14px;
-  color: #04121f;
-  background: linear-gradient(135deg, #6fc0ff, #4aa3ff);
+  color: var(--on-accent);
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
 }
 
 .search-submit:hover {
@@ -460,17 +596,17 @@ mark {
   background:
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2393a2ba' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>")
       no-repeat right 11px center,
-    rgba(8, 16, 29, 0.72);
+    rgba(var(--sunken-rgb), 0.72);
   font-size: 13px;
   outline: none;
 }
 
 .field select:focus {
-  border-color: rgba(74, 163, 255, 0.5);
+  border-color: rgba(var(--accent-rgb), 0.5);
 }
 
 .field select option {
-  background: #0d1a2c;
+  background: var(--option-bg);
 }
 
 .ghost-button {
@@ -481,7 +617,7 @@ mark {
   padding: 8px 12px;
   border-radius: 10px;
   border: 1px solid var(--line-strong);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(var(--fill-rgb), 0.04);
   color: var(--muted);
   font-size: 13.5px;
   transition: 0.16s;
@@ -490,7 +626,7 @@ mark {
 
 .ghost-button:hover:not(:disabled) {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.09);
+  background: rgba(var(--fill-rgb), 0.09);
 }
 
 /* Nhóm hành động: xóa lọc · đổi kiểu xem · xuất CSV — gom về icon cho gọn một hàng */
@@ -509,14 +645,14 @@ mark {
   height: 34px;
   border-radius: 10px;
   border: 1px solid var(--line-strong);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(var(--fill-rgb), 0.04);
   color: var(--muted);
   transition: 0.16s;
 }
 
 .icon-action:hover:not(:disabled) {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(var(--fill-rgb), 0.1);
   border-color: var(--line-strong);
 }
 
@@ -527,7 +663,7 @@ mark {
   padding: 3px;
   border-radius: 10px;
   border: 1px solid var(--line-strong);
-  background: rgba(8, 16, 29, 0.6);
+  background: rgba(var(--sunken-rgb), 0.6);
 }
 
 .view-switch button {
@@ -542,8 +678,8 @@ mark {
 }
 
 .view-switch button.active {
-  color: #04121f;
-  background: linear-gradient(135deg, #6fc0ff, #4aa3ff);
+  color: var(--on-accent);
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
 }
 
 .filter-hint {
@@ -562,10 +698,10 @@ mark {
   display: flex;
   gap: 12px;
   padding: 14px 16px;
-  border: 1px solid rgba(255, 122, 122, 0.35);
+  border: 1px solid rgba(var(--danger-rgb), 0.35);
   border-radius: 12px;
-  background: rgba(255, 122, 122, 0.08);
-  color: #ffd0d0;
+  background: rgba(var(--danger-rgb), 0.08);
+  color: var(--danger-fg);
 }
 
 .notice svg {
@@ -582,7 +718,7 @@ mark {
   margin: 0;
   font-size: 13px;
   line-height: 1.5;
-  color: #ffbcbc;
+  color: var(--danger-fg);
 }
 
 /* ---------- Results ---------- */
@@ -633,7 +769,7 @@ mark {
   padding: 2px 9px;
   border-radius: 999px;
   color: var(--muted);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(var(--fill-rgb), 0.08);
 }
 
 .result-caption {
@@ -650,7 +786,7 @@ mark {
   border-radius: 12px;
   overflow: auto;
   overscroll-behavior: contain;
-  background: rgba(6, 12, 22, 0.5);
+  background: rgba(var(--sunken-rgb), 0.5);
 }
 
 .card-list-wrap {
@@ -687,7 +823,7 @@ mark {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
-  background: #0e1b2e;
+  background: var(--head-bg);
   border-bottom: 1px solid var(--line-strong);
   white-space: nowrap;
 }
@@ -708,7 +844,7 @@ mark {
 }
 
 .data-grid thead th.active {
-  color: var(--blue);
+  color: var(--accent);
 }
 
 .sort-idle {
@@ -721,7 +857,7 @@ mark {
 }
 
 .data-grid tbody tr:nth-child(even) {
-  background: rgba(255, 255, 255, 0.018);
+  background: var(--row-alt);
 }
 
 .data-grid tbody tr:hover {
@@ -736,7 +872,7 @@ mark {
 .data-grid td {
   padding: 11px 12px;
   vertical-align: top;
-  border-bottom: 1px solid rgba(148, 168, 200, 0.09);
+  border-bottom: 1px solid rgba(var(--neutral-rgb), 0.09);
   line-height: 1.55;
 }
 
@@ -794,15 +930,15 @@ mark {
 }
 
 .tag-loai.config {
-  color: #9fd2ff;
-  background: rgba(74, 163, 255, 0.16);
-  border: 1px solid rgba(74, 163, 255, 0.45);
+  color: var(--tag-config-fg);
+  background: rgba(var(--accent-rgb), 0.16);
+  border: 1px solid rgba(var(--accent-rgb), 0.45);
 }
 
 .tag-loai.note {
-  color: #ffd88f;
-  background: rgba(246, 185, 59, 0.16);
-  border: 1px solid rgba(246, 185, 59, 0.45);
+  color: var(--tag-note-fg);
+  background: rgba(var(--amber-rgb), 0.16);
+  border: 1px solid rgba(var(--amber-rgb), 0.45);
 }
 
 /* Chip màu theo Phân hệ (CONFIG) hoặc Module (Lưu ý) */
@@ -834,7 +970,7 @@ mark {
   font-size: 13.5px;
   letter-spacing: 0.01em;
   color: var(--tone-strong);
-  text-shadow: 0 0 22px color-mix(in srgb, var(--tone-strong) 38%, transparent);
+  text-shadow: var(--code-glow);
   word-break: break-word;
 }
 
@@ -891,9 +1027,9 @@ button.ma-config.copyable:active {
   border-radius: 7px;
   font-family: var(--mono);
   font-size: 12.5px;
-  color: #b9f4d8;
-  background: rgba(61, 220, 151, 0.09);
-  border: 1px solid rgba(61, 220, 151, 0.24);
+  color: var(--value-fg);
+  background: rgba(var(--green-rgb), 0.09);
+  border: 1px solid rgba(var(--green-rgb), 0.24);
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -908,10 +1044,10 @@ button.ma-config.copyable:active {
   font-family: var(--mono);
   font-size: 11.8px;
   line-height: 1.6;
-  color: #cfe3ff;
-  background: rgba(6, 14, 26, 0.85);
-  border: 1px solid rgba(74, 163, 255, 0.22);
-  border-left: 3px solid rgba(74, 163, 255, 0.5);
+  color: var(--code-fg);
+  background: rgba(var(--code-bg-rgb), 0.85);
+  border: 1px solid rgba(var(--accent-rgb), 0.22);
+  border-left: 3px solid rgba(var(--accent-rgb), 0.5);
   white-space: pre-wrap;
   word-break: break-word;
   -webkit-mask-image: linear-gradient(180deg, #000 76%, transparent 100%);
@@ -942,7 +1078,7 @@ button.ma-config.copyable:active {
 .record-card:hover {
   transform: translateY(-2px);
   border-color: var(--tone-line);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32);
+  box-shadow: 0 14px 34px rgba(var(--shadow-rgb), 0.32);
 }
 
 .record-card header {
@@ -1065,14 +1201,14 @@ button.ma-config.copyable:active {
   padding: 7px 13px;
   border-radius: 9px;
   border: 1px solid var(--line-strong);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(var(--fill-rgb), 0.04);
   color: var(--muted);
   font-size: 13px;
 }
 
 .pagination button:hover:not(:disabled) {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.09);
+  background: rgba(var(--fill-rgb), 0.09);
 }
 
 .pagination span {
@@ -1116,7 +1252,7 @@ button.ma-config.copyable:active {
   border: 1px solid var(--line-strong);
   border-left-width: 3px;
   border-radius: 11px;
-  background: rgba(13, 24, 40, 0.97);
+  background: var(--toast-bg);
   box-shadow: var(--shadow);
   animation: slide-in 0.2s ease-out;
 }
@@ -1134,7 +1270,7 @@ button.ma-config.copyable:active {
 }
 
 .toast.success {
-  border-color: rgba(61, 220, 151, 0.45);
+  border-color: rgba(var(--green-rgb), 0.45);
 }
 
 .toast.success > svg {
@@ -1142,7 +1278,7 @@ button.ma-config.copyable:active {
 }
 
 .toast.error {
-  border-color: rgba(255, 122, 122, 0.5);
+  border-color: rgba(var(--danger-rgb), 0.5);
 }
 
 .toast.error > svg {
@@ -1150,11 +1286,11 @@ button.ma-config.copyable:active {
 }
 
 .toast.info {
-  border-color: rgba(74, 163, 255, 0.45);
+  border-color: rgba(var(--accent-rgb), 0.45);
 }
 
 .toast.info > svg {
-  color: var(--blue);
+  color: var(--accent);
 }
 
 .toast-text {
@@ -1202,7 +1338,7 @@ button.ma-config.copyable:active {
   align-items: center;
   justify-content: center;
   padding: 22px;
-  background: rgba(3, 7, 14, 0.74);
+  background: var(--backdrop);
   backdrop-filter: blur(6px);
   animation: fade-in 0.16s ease-out;
 }
@@ -1221,7 +1357,7 @@ button.ma-config.copyable:active {
   border: 1px solid var(--line-strong);
   border-top: 3px solid var(--tone-line);
   border-radius: 16px;
-  background: #0c1728;
+  background: var(--modal-bg);
   box-shadow: var(--shadow);
   overflow: hidden;
 }
@@ -1278,7 +1414,7 @@ button.ma-config.copyable:active {
 
 .close-button:hover {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(var(--fill-rgb), 0.07);
 }
 
 .copy-button {
@@ -1288,14 +1424,14 @@ button.ma-config.copyable:active {
   padding: 6px 11px;
   border-radius: 8px;
   border: 1px solid var(--line-strong);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(var(--fill-rgb), 0.05);
   color: var(--muted);
   font-size: 12.5px;
 }
 
 .copy-button:hover {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(var(--fill-rgb), 0.1);
 }
 
 .detail-body {
@@ -1343,23 +1479,23 @@ button.ma-config.copyable:active {
 }
 
 .script-block {
-  color: #cfe3ff;
-  background: rgba(6, 14, 26, 0.9);
-  border: 1px solid rgba(74, 163, 255, 0.24);
-  border-left: 3px solid rgba(74, 163, 255, 0.55);
+  color: var(--code-fg);
+  background: rgba(var(--code-bg-rgb), 0.9);
+  border: 1px solid rgba(var(--accent-rgb), 0.24);
+  border-left: 3px solid rgba(var(--accent-rgb), 0.55);
 }
 
 .value-block-content {
-  color: #b9f4d8;
-  background: rgba(61, 220, 151, 0.08);
-  border: 1px solid rgba(61, 220, 151, 0.26);
-  border-left: 3px solid rgba(61, 220, 151, 0.55);
+  color: var(--value-fg);
+  background: rgba(var(--green-rgb), 0.08);
+  border: 1px solid rgba(var(--green-rgb), 0.26);
+  border-left: 3px solid rgba(var(--green-rgb), 0.55);
 }
 
 .raw-panel {
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(var(--fill-rgb), 0.02);
 }
 
 .raw-panel > summary {
@@ -1380,7 +1516,7 @@ button.ma-config.copyable:active {
 
 .detail-row {
   padding: 11px 14px;
-  border-bottom: 1px dashed rgba(148, 168, 200, 0.14);
+  border-bottom: 1px dashed rgba(var(--neutral-rgb), 0.14);
 }
 
 .detail-row:last-child {
@@ -1480,7 +1616,7 @@ button.ma-config.copyable:active {
 
 .stats-modal {
   width: min(880px, 100%);
-  border-top-color: rgba(74, 163, 255, 0.5);
+  border-top-color: rgba(var(--accent-rgb), 0.5);
 }
 
 .stats-modal > header h2 {
@@ -1523,7 +1659,7 @@ button.ma-config.copyable:active {
 .stat-code {
   font-family: var(--mono);
   font-weight: 700;
-  color: #8ec9ff;
+  color: var(--link);
   word-break: break-word;
 }
 
@@ -1540,7 +1676,7 @@ button.ma-config.copyable:active {
 }
 
 .stat-num.accent {
-  color: #b9f4d8;
+  color: var(--value-fg);
   font-weight: 650;
 }
 
@@ -1551,13 +1687,13 @@ button.ma-config.copyable:active {
 }
 
 .copy-button.danger {
-  border-color: rgba(255, 122, 122, 0.35);
-  color: #ffb3b3;
+  border-color: rgba(var(--danger-rgb), 0.35);
+  color: var(--danger-fg);
 }
 
 .copy-button.danger:hover:not(:disabled) {
-  background: rgba(255, 122, 122, 0.14);
-  color: #ffd0d0;
+  background: rgba(var(--danger-rgb), 0.14);
+  color: var(--danger-fg);
 }
 
 .usage-chip {

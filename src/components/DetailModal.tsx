@@ -70,7 +70,7 @@ function Block({ label, text, code }: { label: string; text: string; code?: bool
 }
 
 export function DetailModal({ record, onClose }: Props) {
-  const tone = record.kind === 'config' ? toneFor('phanHe', record.phanHe) : toneFor('module', record.module);
+  const hue = record.kind === 'config' ? toneFor('phanHe', record.phanHe) : toneFor('module', record.module);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -103,7 +103,7 @@ export function DetailModal({ record, onClose }: Props) {
     <div className="modal-backdrop" onClick={onClose}>
       <section
         className="detail-modal"
-        style={toneVars(tone)}
+        style={toneVars(hue)}
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
