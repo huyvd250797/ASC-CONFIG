@@ -41,13 +41,13 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: number) => 
 
   return (
     <div className={`toast ${toast.kind}`} role={toast.kind === 'error' ? 'alert' : 'status'}>
-      <Icon size={17} />
+      <Icon size={22} />
       <div className="toast-text">
         <strong>{toast.title}</strong>
         {toast.detail && <span>{toast.detail}</span>}
       </div>
       <button type="button" onClick={() => onClose(toast.id)} aria-label="Đóng thông báo">
-        <X size={14} />
+        <X size={16} />
       </button>
     </div>
   );

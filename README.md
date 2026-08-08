@@ -1,4 +1,4 @@
-# ASC-CONFIG v1.9.1
+# ASC-CONFIG v1.9.3
 
 Web app tra cứu **Config** và **Các lưu ý** vận hành, đọc dữ liệu trực tiếp từ Google Sheet.
 
@@ -90,6 +90,8 @@ hiện trong popup chi tiết để giữ ngữ cảnh.
   giữ nguyên xuống dòng và thụt lề. Trong popup chi tiết có nút **Chép script**.
 - Ô trống hiển thị `—` thay vì để trắng.
 - Header dính khi cuộn, sắp xếp được theo cột, luôn hiển thị toàn bộ dòng (không phân trang).
+- Nội dung các ô căn giữa theo chiều dọc, nên khi cột Mô tả dài thì Mã Config và các cột khác
+  vẫn nằm ngang tầm chứ không bị dạt lên đầu dòng.
 - Nút chuyển **Lưới ↔ Thẻ**. Màn hình từ 960px trở xuống mặc định dùng dạng thẻ vì lưới nhiều
   cột rất khó đọc trên điện thoại.
 - Cuộn xuống sẽ hiện nút **lên đầu danh sách** ở góc dưới bên phải: hiện lên trong 0,5s, ngừng
@@ -103,9 +105,12 @@ hiện trong popup chi tiết để giữ ngữ cảnh.
 Toàn bộ phần điều khiển được ghim cố định trong **hai hàng**; **chỉ vùng dữ liệu là cuộn được**,
 nên không còn cảnh vừa cuộn trang vừa cuộn lưới:
 
-- Hàng 1: thương hiệu · tab Loại · bảng trạng thái realtime (làm mới, thống kê, bật/tắt
-  realtime, tải lại)
-- Hàng 2: ô tìm kiếm · Phân hệ · Module · Hiển thị · nhóm nút hành động
+- Hàng 1: thương hiệu (bên trái) · tab Loại và nhóm nút đổi giao diện / thống kê / tải lại
+  (dồn về bên phải)
+- Hàng 2: ô tìm kiếm · Phân hệ · Module · nhóm nút hành động
+
+Phía trên lưới không còn dòng đếm bản ghi — số lượng đã hiển thị ngay trên hai chip CONFIG và
+Các lưu ý, nên bỏ đi để nhường thêm diện tích cho dữ liệu.
 
 Ba nút hành động (xóa bộ lọc, đổi kiểu xem, xuất CSV) rút về dạng biểu tượng và dồn về mép
 phải để cả hàng luôn nằm gọn trên một dòng, không bị rớt xuống dòng thứ hai. Mỗi nút đều có
@@ -233,10 +238,12 @@ backend ghi nhận sự kiện — hiện app chạy hoàn toàn phía client, k
 
 ## Thông báo thao tác
 
-Mọi thao tác đều có toast phản hồi ở góc dưới bên phải, phân biệt theo màu: xanh lá khi thành
-công (sao chép, xuất CSV), đỏ khi thất bại (trình duyệt chặn clipboard, không có dữ liệu để
-xuất), xanh dương cho thông tin (Google Sheet vừa thay đổi, đã bỏ bộ lọc). Toast tự đóng và
-xếp chồng tối đa 4 cái để không che mất dữ liệu.
+Mọi thao tác đều có toast phản hồi ở **góc phải phía trên** — ngay trong tầm mắt và không lẫn
+với nút cuộn lên đầu ở góc dưới. Toast phân biệt theo màu: xanh lá khi thành công (sao chép,
+xuất CSV), đỏ khi thất bại (trình duyệt chặn clipboard, không có dữ liệu để xuất), xanh dương
+cho thông tin (Google Sheet vừa thay đổi, đã bỏ bộ lọc). Mỗi toast rộng tới 420px, có viền màu
+dày bên trái, nền chuyển sắc nhẹ theo loại và đổ bóng nổi khối. Toast tự đóng và xếp chồng tối
+đa 4 cái để không che mất dữ liệu.
 
 ## Tìm kiếm gần đúng
 
@@ -262,8 +269,9 @@ Token từ 3 ký tự trở xuống bắt buộc khớp chính xác — tiếng 
   không làm nháy màn hình.
 - Khi Sheet có thêm/sửa/xóa: cập nhật ngay, ghi nhận mốc **Cập nhật cuối**, và hiện thông báo
   nói rõ bao nhiêu dòng mới, bao nhiêu dòng sửa, bao nhiêu dòng xóa.
-- Thanh trên cùng hiển thị đèn trạng thái, giờ kiểm tra gần nhất, giờ cập nhật cuối,
-  nút bật/tắt realtime và nút tải lại thủ công.
+- Realtime luôn bật, không có nút tắt. Chân trang hiển thị một dòng nhỏ: đèn trạng thái,
+  nguồn dữ liệu và **Cập nhật lần cuối**; rê chuột vào đó xem được chu kỳ kiểm tra và giờ
+  kiểm tra gần nhất. Nút tải lại thủ công nằm ở nhóm icon trên thanh tiêu đề.
 - Nếu một lần gọi bị lỗi mạng, app giữ nguyên dữ liệu đang hiển thị và chỉ báo lỗi,
   không xóa trắng bảng.
 
