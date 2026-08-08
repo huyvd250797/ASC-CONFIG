@@ -383,20 +383,10 @@ mark {
   color: var(--muted);
 }
 
-.live-panel {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 6px 9px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--panel-2);
-}
 
 .live-dot {
-  width: 9px;
-  height: 9px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   flex: none;
 }
@@ -420,20 +410,8 @@ mark {
   }
 }
 
-.live-info {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.35;
-}
 
-.live-info strong {
-  font-size: 13px;
-}
 
-.live-info span {
-  font-size: 11.5px;
-  color: var(--muted);
-}
 
 .icon-toggle {
   display: grid;
@@ -475,9 +453,19 @@ mark {
 .kind-tabs {
   display: flex;
   gap: 6px;
-  flex: 1;
-  justify-content: center;
   flex-wrap: wrap;
+  /* Dồn về sát nhóm icon bên phải */
+  margin-left: auto;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 7px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel-2);
 }
 
 .kind-tab {
@@ -602,7 +590,7 @@ mark {
 
 .filter-row {
   display: flex;
-  gap: 8px;
+  gap: 18px;
   flex-wrap: wrap;
   align-items: center;
   flex: 2 1 460px;
@@ -612,7 +600,7 @@ mark {
 .field {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex: 1 1 160px;
   min-width: 0;
   max-width: 260px;
@@ -922,7 +910,8 @@ mark {
 
 .data-grid td {
   padding: 11px 12px;
-  vertical-align: top;
+  /* Căn giữa theo chiều dọc: khi ô Mô tả dài, mã config và các cột khác không bị lệch lên trên */
+  vertical-align: middle;
   border-bottom: 1px solid rgba(var(--neutral-rgb), 0.09);
   line-height: 1.55;
 }
@@ -1298,26 +1287,39 @@ button.ma-config.copyable:active {
 
 .app-footer {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  font-size: 11px;
+  font-size: 11.5px;
   color: var(--dim);
   padding: 0 4px;
   overflow-wrap: anywhere;
+}
+
+.footer-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.footer-sync {
+  color: var(--muted);
 }
 
 /* ---------- Toast ---------- */
 
 .toast-stack {
   position: fixed;
+  /* Góc phải TRÊN: nằm ngay trong tầm mắt, không lẫn với nút cuộn ở góc dưới */
+  top: 16px;
   right: 18px;
-  bottom: 18px;
   z-index: 120;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-width: min(380px, calc(100vw - 36px));
+  gap: 10px;
+  width: min(420px, calc(100vw - 36px));
   pointer-events: none;
 }
 
@@ -1325,20 +1327,20 @@ button.ma-config.copyable:active {
   pointer-events: auto;
   display: flex;
   align-items: flex-start;
-  gap: 11px;
-  padding: 11px 13px;
+  gap: 13px;
+  padding: 15px 16px;
   border: 1px solid var(--line-strong);
-  border-left-width: 3px;
-  border-radius: 11px;
+  border-left-width: 5px;
+  border-radius: 13px;
   background: var(--toast-bg);
-  box-shadow: var(--shadow);
-  animation: slide-in 0.2s ease-out;
+  box-shadow: 0 16px 42px rgba(var(--shadow-rgb), 0.4);
+  animation: toast-in 0.26s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes slide-in {
+@keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(-14px) scale(0.97);
   }
 }
 
@@ -1348,7 +1350,8 @@ button.ma-config.copyable:active {
 }
 
 .toast.success {
-  border-color: rgba(var(--green-rgb), 0.45);
+  border-color: rgba(var(--green-rgb), 0.55);
+  background: linear-gradient(100deg, rgba(var(--green-rgb), 0.14), transparent 62%), var(--toast-bg);
 }
 
 .toast.success > svg {
@@ -1356,7 +1359,8 @@ button.ma-config.copyable:active {
 }
 
 .toast.error {
-  border-color: rgba(var(--danger-rgb), 0.5);
+  border-color: rgba(var(--danger-rgb), 0.6);
+  background: linear-gradient(100deg, rgba(var(--danger-rgb), 0.14), transparent 62%), var(--toast-bg);
 }
 
 .toast.error > svg {
@@ -1364,7 +1368,8 @@ button.ma-config.copyable:active {
 }
 
 .toast.info {
-  border-color: rgba(var(--accent-rgb), 0.45);
+  border-color: rgba(var(--accent-rgb), 0.55);
+  background: linear-gradient(100deg, rgba(var(--accent-rgb), 0.14), transparent 62%), var(--toast-bg);
 }
 
 .toast.info > svg {
@@ -1376,32 +1381,37 @@ button.ma-config.copyable:active {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  line-height: 1.4;
+  gap: 3px;
+  line-height: 1.45;
 }
 
 .toast-text strong {
-  font-size: 13px;
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--text);
 }
 
 .toast-text span {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .toast > button {
   flex: none;
-  border: 0;
-  background: transparent;
-  color: var(--dim);
   display: grid;
   place-items: center;
-  padding: 2px;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--dim);
 }
 
 .toast > button:hover {
   color: var(--text);
+  background: rgba(var(--fill-rgb), 0.1);
 }
 
 /* ---------- Popup chi tiết ---------- */
@@ -1668,8 +1678,13 @@ button.ma-config.copyable:active {
   }
 
   .kind-tabs {
-    flex: 1 1 100%;
+    flex: 1 1 auto;
+    margin-left: 0;
     justify-content: stretch;
+  }
+
+  .topbar-actions {
+    flex: none;
   }
 
   .kind-tab {
@@ -1677,21 +1692,6 @@ button.ma-config.copyable:active {
     justify-content: center;
     min-width: 0;
     padding: 9px 8px;
-  }
-
-  .live-panel {
-    flex: 1 1 100%;
-    min-width: 0;
-    flex-wrap: wrap;
-  }
-
-  .live-info {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
-  .live-info span {
-    overflow-wrap: anywhere;
   }
 
   /* Bộ lọc: nhãn nằm trên ô chọn, mỗi ô chiếm trọn bề ngang */
@@ -1707,7 +1707,7 @@ button.ma-config.copyable:active {
 
   .filter-row {
     flex: 1 1 100%;
-    gap: 10px;
+    gap: 12px;
   }
 
   .field {
@@ -1789,10 +1789,18 @@ button.ma-config.copyable:active {
   }
 
   .toast-stack {
-    left: 12px;
-    right: 12px;
-    bottom: 12px;
-    max-width: none;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    width: auto;
+  }
+
+  .toast {
+    padding: 13px 14px;
+  }
+
+  .toast-text strong {
+    font-size: 14.5px;
   }
 
   .scroll-top {
@@ -1805,6 +1813,10 @@ button.ma-config.copyable:active {
   .app-footer {
     justify-content: center;
     text-align: center;
+  }
+
+  .footer-source {
+    justify-content: center;
   }
 }
 
@@ -1933,10 +1945,18 @@ button.ma-config.copyable:active {
 
 @media (max-width: 960px) {
   .toast-stack {
-    left: 12px;
-    right: 12px;
-    bottom: 12px;
-    max-width: none;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    width: auto;
+  }
+
+  .toast {
+    padding: 13px 14px;
+  }
+
+  .toast-text strong {
+    font-size: 14.5px;
   }
 }
 

@@ -9,7 +9,6 @@ import {
   Lightbulb,
   Loader2,
   BarChart3,
-  Radio,
   RefreshCw,
   Moon,
   Rows3,
@@ -143,7 +142,6 @@ export default function App() {
   const [refreshing, setRefreshing] = useState(false);
   const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null);
   const [lastChangedAt, setLastChangedAt] = useState<Date | null>(null);
-  const [realtime, setRealtime] = useState(true);
   const [statsOpen, setStatsOpen] = useState(false);
   const notify = useToast();
   const { theme, toggle: toggleTheme } = useTheme();
@@ -249,7 +247,6 @@ export default function App() {
 
   // Kiểm tra định kỳ + kiểm tra ngay khi người dùng quay lại tab.
   useEffect(() => {
-    if (!realtime) return;
     const timer = window.setInterval(() => void refresh(true), POLL_INTERVAL_MS);
     const onVisible = () => {
       if (document.visibilityState === 'visible') void refresh(true);
@@ -261,7 +258,7 @@ export default function App() {
       document.removeEventListener('visibilitychange', onVisible);
       window.removeEventListener('focus', onVisible);
     };
-  }, [realtime, refresh]);
+  }, [refresh]);
 
   const configRecords = useMemo(() => {
     const records = data.config.records as ConfigRecord[];
@@ -387,7 +384,6 @@ export default function App() {
     setNoteSort(DEFAULTS.sort);
     setSelected(null);
     setStatsOpen(false);
-    setRealtime(true);
     void refresh(false);
 
     // Đưa thanh cuộn của bảng về đầu; chờ React vẽ lại xong mới cuộn.
@@ -503,22 +499,7 @@ export default function App() {
           })}
         </div>
 
-        <div className="live-panel">
-          <div className={`live-dot ${realtime ? 'on' : 'off'}`} aria-hidden />
-          <div className="live-info">
-            <strong>{realtime ? 'Realtime đang bật' : 'Realtime đã tắt'}</strong>
-            <span>
-              Kiểm tra: {formatClock(lastCheckedAt)} · Cập nhật cuối: {formatFull(lastChangedAt)}
-            </span>
-          </div>
-          <button
-            type="button"
-            className={`icon-toggle ${realtime ? 'active' : ''}`}
-            onClick={() => setRealtime((value) => !value)}
-            title={realtime ? 'Tắt tự động cập nhật' : 'Bật tự động cập nhật'}
-          >
-            <Radio size={16} />
-          </button>
+        <div className="topbar-actions">
           <button
             type="button"
             className="icon-toggle"
@@ -653,13 +634,6 @@ export default function App() {
         </section>
       ) : (
         <section className="results" aria-live="polite" ref={resultsRef}>
-          <div className="results-head">
-            <h2>
-              {activeList.length} bản ghi
-              {query && <em> cho từ khóa “{query}”</em>}
-            </h2>
-          </div>
-
           {activeList.length === 0 ? (
             <EmptyResult />
           ) : view === 'grid' ? (
@@ -690,14 +664,21 @@ export default function App() {
       )}
 
       <footer className="app-footer">
-        <span>
+        <span className="footer-source">
+          <span className="live-dot on" aria-hidden />
           Nguồn dữ liệu:{' '}
           <button type="button" className="link-button" onClick={() => void openSource()}>
             Google Sheet ASC-CONFIG
           </button>
+          <span
+            className="footer-sync"
+            title={`Tự kiểm tra mỗi ${POLL_INTERVAL_MS / 1000} giây · lần kiểm tra gần nhất ${formatClock(lastCheckedAt)}`}
+          >
+            · Cập nhật lần cuối: {formatFull(lastChangedAt)}
+          </span>
         </span>
         <span>
-          {configRecords.length} config · {noteRecords.length} lưu ý · tự kiểm tra mỗi {POLL_INTERVAL_MS / 1000}s · v1.4.0
+          {configRecords.length} config · {noteRecords.length} lưu ý · v1.9.3
         </span>
       </footer>
 
