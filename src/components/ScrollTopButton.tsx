@@ -8,12 +8,12 @@ import { ArrowUp } from 'lucide-react';
  * trang bình thường nên vùng cuộn là chính cửa sổ. Component lắng nghe cả hai để hoạt động
  * đúng ở mọi kích thước màn hình.
  *
- * Hành vi hiển thị: cuộn xuống thì hiện lên trong 0.5s, dừng cuộn 3 giây thì mờ dần đi
+ * Hành vi hiển thị: cuộn xuống thì hiện lên trong 0.5s, dừng cuộn 2 giây thì mờ dần đi
  * trong 1s.
  */
 
 const SHOW_AFTER = 220;
-const IDLE_MS = 3000;
+const IDLE_MS = 2000;
 const FADE_OUT_MS = 1000;
 
 export function ScrollTopButton({ containerRef }: { containerRef: RefObject<HTMLElement | null> }) {

@@ -1,4 +1,4 @@
-# ASC-CONFIG v1.9.0
+# ASC-CONFIG v1.9.1
 
 Web app tra cứu **Config** và **Các lưu ý** vận hành, đọc dữ liệu trực tiếp từ Google Sheet.
 
@@ -93,7 +93,7 @@ hiện trong popup chi tiết để giữ ngữ cảnh.
 - Nút chuyển **Lưới ↔ Thẻ**. Màn hình từ 960px trở xuống mặc định dùng dạng thẻ vì lưới nhiều
   cột rất khó đọc trên điện thoại.
 - Cuộn xuống sẽ hiện nút **lên đầu danh sách** ở góc dưới bên phải: hiện lên trong 0,5s, ngừng
-  cuộn 3 giây thì mờ dần đi trong 1s. Nút hoạt động với cả vùng cuộn của bảng (máy tính) lẫn
+  cuộn 2 giây thì mờ dần đi trong 1s. Nút hoạt động với cả vùng cuộn của bảng (máy tính) lẫn
   cuộn trang (điện thoại).
 - Bấm một dòng để mở popup chi tiết, trình bày các trường chính theo loại bản ghi.
 - Nút **Xuất CSV** xuất đúng phần đang lọc (ở tab Tất cả sẽ xuất hai file riêng cho hai loại).
@@ -128,7 +128,17 @@ Các vùng cuộn đều đặt `overscroll-behavior: contain` để cuộn hế
 Dưới 960px bố cục tự trả về kiểu cuộn trang thông thường cho hợp với điện thoại: thương hiệu,
 tab Loại và bảng trạng thái mỗi thứ một hàng; ô tìm kiếm và từng bộ lọc chiếm trọn bề ngang với
 nhãn nằm phía trên; nhóm nút hành động dàn đều. `body` đặt `overflow-x: hidden` và `.app-shell`
-dùng bề rộng 100% với padding riêng nên không còn tràn viền.
+dùng bề rộng 100% với padding riêng.
+
+Điểm dễ sai khi chỉnh CSS về sau: phần tử flex/grid mặc định có `min-width: auto`, nghĩa là nó
+sẽ phình theo nội dung dài nhất bên trong (mã config dài, giá trị không có khoảng trắng) và đẩy
+tràn ra ngoài màn hình hẹp. Vì vậy các khung chứa đều đặt `min-width: 0`, lưới thẻ dùng
+`minmax(min(340px, 100%), 1fr)` để cột co theo khung khi khung hẹp hơn 340px, và các khối chữ
+đặt `overflow-wrap: anywhere`.
+
+Bố cục đã được đo bằng trình duyệt thật ở các bề rộng 360 / 390 / 430 / 768 / 1024 / 1440px,
+gồm cả lúc mở popup chi tiết, popup thống kê và bảng gợi ý của bộ lọc — không phần tử nào
+vượt ra ngoài khung nhìn.
 
 ## Nền tối / nền sáng
 
@@ -189,8 +199,8 @@ thứ tự trong Sheet. Giá trị nào xuất hiện trong dữ liệu nhưng t
 
 Cả hai bộ lọc là **ô chọn có tìm kiếm**: bấm vào rồi gõ vài ký tự là danh sách lọc ngay, không
 phải cuộn tìm bằng mắt. Ô tìm trong danh sách dùng chung thuật toán gần đúng với ô tìm kiếm
-chính nên gõ không dấu, gõ dính liền hay gõ sai vài ký tự đều ra đúng (`hoc vu`, `nhaphoc`,
-`chamcong`). Điều hướng được bằng phím mũi tên, Enter để chọn, Esc để đóng, và có nút ✕ để bỏ
+chính nên gõ không dấu, gõ dính liền, gõ tắt hay gõ sai vài ký tự đều ra đúng (`hoc vu`,
+`nhaphoc`, `chamcong`, `tracng` → Trắc Nghiệm). Điều hướng được bằng phím mũi tên, Enter để chọn, Esc để đóng, và có nút ✕ để bỏ
 lọc nhanh.
 
 - **Phân hệ** — chỉ tồn tại ở sheet CONFIG, nên tự động vô hiệu hóa khi đang ở tab Các lưu ý.

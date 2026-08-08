@@ -111,6 +111,11 @@ function scoreToken(token: string, normalized: string) {
       if (Math.abs(joined.length - token.length) <= tolerance && levenshtein(token, joined, tolerance) <= tolerance) {
         return 48;
       }
+      // Gõ tắt phần đầu của cụm ghép: "tracng" ~ "trac nghiem".
+      if (token.length >= 4 && joined.length > token.length) {
+        const head = joined.slice(0, token.length + tolerance);
+        if (levenshtein(token, head, tolerance) <= tolerance) return 44;
+      }
     }
   }
 
