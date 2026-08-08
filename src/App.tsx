@@ -37,6 +37,8 @@ import { ConfigGrid } from './components/ConfigGrid';
 import { NoteGrid } from './components/NoteGrid';
 import { CardList } from './components/CardList';
 import { DetailModal } from './components/DetailModal';
+import { SearchableSelect, ALL_VALUE } from './components/SearchableSelect';
+import { ScrollTopButton } from './components/ScrollTopButton';
 import { StatsModal } from './components/StatsModal';
 import { useToast } from './lib/toast';
 import { useTheme } from './lib/theme';
@@ -45,16 +47,21 @@ import type { SortState } from './components/common';
 
 /** Chu kỳ kiểm tra Google Sheet (ms). */
 const POLL_INTERVAL_MS = 15000;
-const PAGE_SIZES = [0, 25, 50, 100];
+/** Màn hình hẹp thì lưới nhiều cột rất khó đọc, nên mặc định dùng dạng thẻ. */
+function isNarrowScreen() {
+  return typeof window !== 'undefined' && window.matchMedia('(max-width: 960px)').matches;
+}
 
-/** Hiện trạng ban đầu của app — dùng cho nút "Làm mới". */
+function defaultView(): 'grid' | 'card' {
+  return isNarrowScreen() ? 'card' : 'grid';
+}
+
+/** Hiện trạng ban đầu của app — dùng khi bấm vào logo để làm mới. */
 const DEFAULTS = {
   kindView: 'config' as RecordKind,
-  view: 'grid' as const,
-  pageSize: 0,
   sort: { key: 'stt', direction: 'asc' } as SortState,
 };
-const ALL = '__all__';
+const ALL = ALL_VALUE;
 
 type SheetState = { records: AppRecord[]; signature: string; error: string | null };
 type AppData = Record<RecordKind, SheetState>;
@@ -149,11 +156,9 @@ export default function App() {
   const [phanHeFilter, setPhanHeFilter] = useState<string>(ALL);
   const [moduleFilter, setModuleFilter] = useState<string>(ALL);
 
-  const [view, setView] = useState<'grid' | 'card'>(DEFAULTS.view);
+  const [view, setView] = useState<'grid' | 'card'>(defaultView);
   const [configSort, setConfigSort] = useState<SortState>(DEFAULTS.sort);
   const [noteSort, setNoteSort] = useState<SortState>(DEFAULTS.sort);
-  const [pageSize, setPageSize] = useState(DEFAULTS.pageSize);
-  const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<AppRecord | null>(null);
 
   const dataRef = useRef(data);
@@ -352,16 +357,8 @@ export default function App() {
     return scored.map((item) => item.record);
   }, [noteRecords, moduleFilter, tokens, noteSort]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [query, kindView, phanHeFilter, moduleFilter, pageSize, configSort, noteSort]);
-
   const activeList: AppRecord[] = kindView === 'config' ? filteredConfig : filteredNotes;
 
-  const totalPages = pageSize === 0 ? 1 : Math.max(1, Math.ceil(activeList.length / pageSize));
-  const currentPage = Math.min(page, totalPages);
-  const startIndex = pageSize === 0 ? 0 : (currentPage - 1) * pageSize;
-  const pagedList = pageSize === 0 ? activeList : activeList.slice(startIndex, startIndex + pageSize);
 
   const submitSearch = (event?: { preventDefault: () => void }) => {
     event?.preventDefault();
@@ -385,11 +382,9 @@ export default function App() {
     setPhanHeFilter(ALL);
     setModuleFilter(ALL);
     setKindView(DEFAULTS.kindView);
-    setView(DEFAULTS.view);
-    setPageSize(DEFAULTS.pageSize);
+    setView(defaultView());
     setConfigSort(DEFAULTS.sort);
     setNoteSort(DEFAULTS.sort);
-    setPage(1);
     setSelected(null);
     setStatsOpen(false);
     setRealtime(true);
@@ -584,44 +579,23 @@ export default function App() {
         </form>
 
         <div className="filter-row">
-          <label className={`field ${phanHeDisabled ? 'disabled' : ''}`}>
-            <span>Phân hệ {phanHeDisabled && '(chỉ có ở CONFIG)'}</span>
-            <select
-              value={phanHeFilter}
-              disabled={phanHeDisabled}
-              onChange={(event) => setPhanHeFilter(event.target.value)}
-            >
-              <option value={ALL}>Tất cả phân hệ</option>
-              {phanHeOptions.map(([name]) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <SearchableSelect
+            label="Phân hệ"
+            allLabel="Tất cả phân hệ"
+            value={phanHeFilter}
+            options={phanHeOptions.map(([name]) => name)}
+            onChange={setPhanHeFilter}
+            disabled={phanHeDisabled}
+            hint={phanHeDisabled ? 'Sheet Các lưu ý không có cột Phân hệ' : undefined}
+          />
 
-          <label className="field">
-            <span>Module</span>
-            <select value={moduleFilter} onChange={(event) => setModuleFilter(event.target.value)}>
-              <option value={ALL}>Tất cả module</option>
-              {moduleOptions.map(([name]) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="field compact">
-            <span>Hiển thị</span>
-            <select value={pageSize} onChange={(event) => setPageSize(Number(event.target.value))}>
-              {PAGE_SIZES.map((size) => (
-                <option key={size} value={size}>
-                  {size === 0 ? 'Tất cả' : `${size} dòng`}
-                </option>
-              ))}
-            </select>
-          </label>
+          <SearchableSelect
+            label="Module"
+            allLabel="Tất cả module"
+            value={moduleFilter}
+            options={moduleOptions.map(([name]) => name)}
+            onChange={setModuleFilter}
+          />
 
           <div className="action-group">
             <button
@@ -684,11 +658,6 @@ export default function App() {
               {activeList.length} bản ghi
               {query && <em> cho từ khóa “{query}”</em>}
             </h2>
-            {activeList.length > 0 && pageSize !== 0 && (
-              <span className="result-caption">
-                Đang xem {startIndex + 1}–{Math.min(startIndex + pageSize, activeList.length)}
-              </span>
-            )}
           </div>
 
           {activeList.length === 0 ? (
@@ -696,7 +665,7 @@ export default function App() {
           ) : view === 'grid' ? (
             kindView === 'config' ? (
               <ConfigGrid
-                records={pagedList as ConfigRecord[]}
+                records={activeList as ConfigRecord[]}
                 tokens={tokens}
                 sort={configSort}
                 onSort={makeSortHandler('config')}
@@ -704,7 +673,7 @@ export default function App() {
               />
             ) : (
               <NoteGrid
-                records={pagedList as NoteRecord[]}
+                records={activeList as NoteRecord[]}
                 tokens={tokens}
                 sort={noteSort}
                 onSort={makeSortHandler('note')}
@@ -713,29 +682,10 @@ export default function App() {
             )
           ) : (
             <div className="card-list-wrap">
-              <CardList records={pagedList} tokens={tokens} onSelect={setSelected} />
+              <CardList records={activeList} tokens={tokens} onSelect={setSelected} />
             </div>
           )}
 
-          {totalPages > 1 && (
-            <div className="pagination">
-              <button type="button" onClick={() => setPage(1)} disabled={currentPage === 1}>
-                Đầu
-              </button>
-              <button type="button" onClick={() => setPage(currentPage - 1)} disabled={currentPage === 1}>
-                Trước
-              </button>
-              <span>
-                Trang {currentPage}/{totalPages}
-              </span>
-              <button type="button" onClick={() => setPage(currentPage + 1)} disabled={currentPage === totalPages}>
-                Sau
-              </button>
-              <button type="button" onClick={() => setPage(totalPages)} disabled={currentPage === totalPages}>
-                Cuối
-              </button>
-            </div>
-          )}
         </section>
       )}
 
@@ -750,6 +700,8 @@ export default function App() {
           {configRecords.length} config · {noteRecords.length} lưu ý · tự kiểm tra mỗi {POLL_INTERVAL_MS / 1000}s · v1.4.0
         </span>
       </footer>
+
+      <ScrollTopButton containerRef={resultsRef} />
 
       {selected && <DetailModal record={selected} onClose={() => setSelected(null)} />}
       {statsOpen && <StatsModal onClose={() => setStatsOpen(false)} />}
