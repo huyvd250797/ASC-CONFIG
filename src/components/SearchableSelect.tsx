@@ -65,10 +65,12 @@ export function SearchableSelect({ label, allLabel, value, options, onChange, di
     const above = rect.top - PANEL_GAP - 8;
     const drop: Position['drop'] = below < 180 && above > below ? 'up' : 'down';
     const maxHeight = Math.min(PANEL_MAX, drop === 'down' ? below : above);
+    // Bảng có thể rộng hơn nút bấm, nên phải kẹp theo bề rộng của chính bảng.
+    const width = Math.min(Math.max(rect.width, 220), window.innerWidth - 16);
     setPosition({
       top: drop === 'down' ? rect.bottom + PANEL_GAP : rect.top - PANEL_GAP - maxHeight,
-      left: Math.max(8, Math.min(rect.left, window.innerWidth - rect.width - 8)),
-      width: Math.max(rect.width, 220),
+      left: Math.max(8, Math.min(rect.left, window.innerWidth - width - 8)),
+      width,
       maxHeight,
       drop,
     });
