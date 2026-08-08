@@ -1,4 +1,4 @@
-# ASC-CONFIG v1.8.1
+# ASC-CONFIG v1.9.0
 
 Web app tra cứu **Config** và **Các lưu ý** vận hành, đọc dữ liệu trực tiếp từ Google Sheet.
 
@@ -89,9 +89,12 @@ hiện trong popup chi tiết để giữ ngữ cảnh.
 - **Hướng xử lý** chứa script SQL được nhận diện tự động và render bằng khối code monospace,
   giữ nguyên xuống dòng và thụt lề. Trong popup chi tiết có nút **Chép script**.
 - Ô trống hiển thị `—` thay vì để trắng.
-- Header dính khi cuộn, sắp xếp được theo cột, phân trang. Mặc định hiển thị **tất cả dòng**;
-  có thể đổi sang 25/50/100 dòng mỗi trang nếu máy yếu.
-- Nút chuyển **Lưới ↔ Thẻ**; dạng thẻ tiện dùng trên điện thoại.
+- Header dính khi cuộn, sắp xếp được theo cột, luôn hiển thị toàn bộ dòng (không phân trang).
+- Nút chuyển **Lưới ↔ Thẻ**. Màn hình từ 960px trở xuống mặc định dùng dạng thẻ vì lưới nhiều
+  cột rất khó đọc trên điện thoại.
+- Cuộn xuống sẽ hiện nút **lên đầu danh sách** ở góc dưới bên phải: hiện lên trong 0,5s, ngừng
+  cuộn 3 giây thì mờ dần đi trong 1s. Nút hoạt động với cả vùng cuộn của bảng (máy tính) lẫn
+  cuộn trang (điện thoại).
 - Bấm một dòng để mở popup chi tiết, trình bày các trường chính theo loại bản ghi.
 - Nút **Xuất CSV** xuất đúng phần đang lọc (ở tab Tất cả sẽ xuất hai file riêng cho hai loại).
 
@@ -122,7 +125,10 @@ khả năng cuộn.
 Khi popup mở ra, nền bị khoá cuộn hoàn toàn — chỉ cuộn được bên trong popup.
 Các vùng cuộn đều đặt `overscroll-behavior: contain` để cuộn hết nội dung không bị lan ra ngoài.
 
-Dưới 960px bố cục tự trả về kiểu cuộn trang thông thường cho hợp với điện thoại.
+Dưới 960px bố cục tự trả về kiểu cuộn trang thông thường cho hợp với điện thoại: thương hiệu,
+tab Loại và bảng trạng thái mỗi thứ một hàng; ô tìm kiếm và từng bộ lọc chiếm trọn bề ngang với
+nhãn nằm phía trên; nhóm nút hành động dàn đều. `body` đặt `overflow-x: hidden` và `.app-shell`
+dùng bề rộng 100% với padding riêng nên không còn tràn viền.
 
 ## Nền tối / nền sáng
 
@@ -181,8 +187,13 @@ Danh mục của hai bộ lọc lấy từ sheet `Data` (Phân hệ ở cột J,
 thứ tự trong Sheet. Giá trị nào xuất hiện trong dữ liệu nhưng thiếu
 ở danh mục vẫn được đưa xuống cuối danh sách để không bản ghi nào bị lọt khỏi bộ lọc.
 
+Cả hai bộ lọc là **ô chọn có tìm kiếm**: bấm vào rồi gõ vài ký tự là danh sách lọc ngay, không
+phải cuộn tìm bằng mắt. Ô tìm trong danh sách dùng chung thuật toán gần đúng với ô tìm kiếm
+chính nên gõ không dấu, gõ dính liền hay gõ sai vài ký tự đều ra đúng (`hoc vu`, `nhaphoc`,
+`chamcong`). Điều hướng được bằng phím mũi tên, Enter để chọn, Esc để đóng, và có nút ✕ để bỏ
+lọc nhanh.
+
 - **Phân hệ** — chỉ tồn tại ở sheet CONFIG, nên tự động vô hiệu hóa khi đang ở tab Các lưu ý.
-  Ở tab Tất cả sẽ có dòng nhắc rằng bộ lọc này chỉ áp dụng cho CONFIG.
 - **Module** — dùng chung cho cả hai sheet vì hai bên dùng chung từ vựng module.
   Danh sách Module lọc theo Phân hệ đang chọn.
 - Nút **Xóa lọc** đưa mọi thứ về mặc định.
@@ -271,6 +282,8 @@ src/
   components/CardList.tsx     Chế độ xem thẻ cho cả hai loại
   components/DetailModal.tsx  Popup chi tiết
   components/StatsModal.tsx   Popup thống kê sử dụng
+  components/SearchableSelect.tsx  Ô chọn có tìm kiếm cho Phân hệ / Module
+  components/ScrollTopButton.tsx   Nút lên đầu danh sách
   components/Highlight.tsx    Tô sáng phần khớp từ khóa
   components/common.tsx       Badge Loại, header có sắp xếp
 ```

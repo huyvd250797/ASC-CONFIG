@@ -1602,68 +1602,160 @@ button.ma-config.copyable:active {
   }
 
   body {
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .app-shell {
+    width: 100%;
+    flex: none;
+    height: auto;
+    overflow: visible;
+    padding: 10px 10px 28px;
+    gap: 10px;
+  }
+
+  /* Thanh tiêu đề: thương hiệu một hàng, tab và trạng thái xuống hàng riêng */
+  .topbar {
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .brand {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .brand-text {
+    min-width: 0;
+  }
+
+  .brand-text > span {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .kind-tabs {
     flex: 1 1 100%;
-    justify-content: flex-start;
-  }
-
-  .app-shell {
-    width: calc(100% - 20px);
-    flex: none;
-    height: auto;
-    overflow: visible;
-    padding-bottom: 32px;
-  }
-
-  .results {
-    flex: none;
-  }
-
-  .card-list-wrap {
-    overflow: visible;
-  }
-
-  .field {
-    flex: 1 1 100%;
-    max-width: 100%;
-  }
-
-  .action-group {
-    margin-left: 0;
-  }
-
-  .topbar,
-  .live-panel {
-    width: 100%;
+    justify-content: stretch;
   }
 
   .kind-tab {
     flex: 1;
     justify-content: center;
-    padding: 11px 12px;
+    min-width: 0;
+    padding: 9px 8px;
+  }
+
+  .live-panel {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+  }
+
+  .live-info {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .live-info span {
+    overflow-wrap: anywhere;
+  }
+
+  /* Bộ lọc: nhãn nằm trên ô chọn, mỗi ô chiếm trọn bề ngang */
+  .control-bar {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .search-box {
+    flex: 1 1 100%;
+    min-width: 0;
   }
 
   .filter-row {
+    flex: 1 1 100%;
+    gap: 10px;
+  }
+
+  .field {
+    flex: 1 1 100%;
+    max-width: 100%;
     flex-direction: column;
     align-items: stretch;
+    gap: 5px;
   }
 
-  .search-submit {
-    padding: 9px 14px;
+  .field > span {
+    font-size: 10.5px;
   }
 
-  .grid-wrap {
+  .action-group {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .results {
+    flex: none;
+    padding: 10px;
+  }
+
+  .grid-wrap,
+  .card-list-wrap,
+  .stats-wrap {
     max-height: none;
+    overflow-x: auto;
   }
 
   .card-list {
     grid-template-columns: 1fr;
   }
 
+  .record-card {
+    padding: 13px;
+  }
+
+  .record-card dl {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .modal-backdrop {
+    padding: 12px;
+  }
+
+  .detail-modal,
+  .stats-modal,
+  .pin-dialog {
+    max-height: 92vh;
+  }
+
+  .stats-wrap {
+    margin: 12px 12px 0;
+  }
+
+  .toast-stack {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    max-width: none;
+  }
+
+  .scroll-top {
+    right: 14px;
+    bottom: 86px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .app-footer {
+    justify-content: center;
+    text-align: center;
+  }
 }
+
 
 /* ---------- Popup thống kê ---------- */
 
@@ -1918,4 +2010,215 @@ button.ma-config.copyable:active {
   justify-content: flex-end;
   gap: 8px;
   margin-top: 14px;
+}
+
+/* ---------- Ô chọn có tìm kiếm ---------- */
+
+.field.combo {
+  position: relative;
+}
+
+.combo-box {
+  flex: 1;
+  min-width: 0;
+}
+
+.combo-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 10px 8px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+  background: rgba(var(--sunken-rgb), 0.72);
+  color: var(--text);
+  font-size: 13px;
+  text-align: left;
+  transition: 0.14s;
+}
+
+.combo-trigger:hover:not(:disabled) {
+  border-color: rgba(var(--accent-rgb), 0.4);
+}
+
+.combo-trigger.open {
+  border-color: rgba(var(--accent-rgb), 0.6);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.12);
+}
+
+.combo-trigger.chosen {
+  border-color: rgba(var(--accent-rgb), 0.45);
+  background: rgba(var(--accent-rgb), 0.09);
+}
+
+.combo-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.combo-caret {
+  flex: none;
+  color: var(--muted);
+}
+
+.combo-clear {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  border-radius: 6px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.combo-clear:hover {
+  color: var(--text);
+  background: rgba(var(--fill-rgb), 0.12);
+}
+
+/* Định vị fixed để không bị .app-shell (overflow: hidden) cắt mất */
+.combo-panel {
+  position: fixed;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--modal-bg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  animation: combo-in 0.13s ease-out;
+}
+
+@keyframes combo-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.combo-panel.up {
+  animation-name: combo-in-up;
+}
+
+@keyframes combo-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+.combo-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  border-bottom: 1px solid var(--line);
+}
+
+.combo-search svg {
+  flex: none;
+  color: var(--dim);
+}
+
+.combo-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-size: 13.5px;
+  color: var(--text);
+}
+
+.combo-list {
+  margin: 0;
+  padding: 5px;
+  list-style: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.combo-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.combo-list li span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.combo-list li svg {
+  flex: none;
+  color: var(--accent);
+}
+
+.combo-list li.all {
+  color: var(--muted);
+}
+
+.combo-list li.active {
+  background: rgba(var(--accent-rgb), 0.16);
+  color: var(--text);
+}
+
+.combo-list li.selected {
+  font-weight: 650;
+}
+
+.combo-empty {
+  padding: 14px 10px;
+  color: var(--dim);
+  font-size: 13px;
+  cursor: default;
+  justify-content: center;
+}
+
+/* ---------- Nút lên đầu danh sách ---------- */
+
+.scroll-top {
+  position: fixed;
+  right: 22px;
+  bottom: 76px;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: var(--modal-bg);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.scroll-top:hover {
+  border-color: rgba(var(--accent-rgb), 0.55);
+  color: var(--accent);
+}
+
+/* Hiện lên trong 0.5s, mờ đi trong 1s sau khi ngừng cuộn */
+.scroll-top.show {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.scroll-top.hide {
+  opacity: 0;
+  transform: scale(0.9);
+  pointer-events: none;
+  transition: opacity 1s ease, transform 1s ease;
 }
