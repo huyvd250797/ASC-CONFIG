@@ -17,6 +17,10 @@ export type UsageEntry = {
   kind: RecordKind;
   /** Mã Config hoặc tiêu đề vấn đề, hiển thị trong bảng thống kê */
   label: string;
+  /** Phân hệ của bản ghi CONFIG (trống với Lưu ý). */
+  phanHe?: string;
+  /** Module của bản ghi. */
+  module?: string;
   /** Số lần mở xem chi tiết */
   views: number;
   /** Số lần sao chép mã */
@@ -64,6 +68,8 @@ function bump(record: AppRecord, field: 'views' | 'copies') {
     key: record.key,
     kind: record.kind,
     label: labelOf(record),
+    phanHe: record.kind === 'config' ? record.phanHe : '',
+    module: record.module,
     views: 0,
     copies: 0,
     lastAt: 0,
@@ -72,11 +78,13 @@ function bump(record: AppRecord, field: 'views' | 'copies') {
     ...current,
     label: labelOf(record),
     kind: record.kind,
+    phanHe: record.kind === 'config' ? record.phanHe : '',
+    module: record.module,
     [field]: current[field] + 1,
     lastAt: Date.now(),
   };
   commit(map);
-  queueUsage({ key: record.key, kind: record.kind, label: labelOf(record) }, field);
+  queueUsage({ key: record.key, kind: record.kind, label: labelOf(record), phanHe: record.kind === 'config' ? record.phanHe : '', module: record.module }, field);
 }
 
 /** Ghi nhận một lần mở xem chi tiết bản ghi. */
@@ -96,6 +104,13 @@ export function getUsage() {
 
 export function getUsageFor(key: string): UsageEntry | undefined {
   return read()[key];
+}
+
+export function deleteUsage(key: string) {
+  const map = { ...read() };
+  if (!map[key]) return;
+  delete map[key];
+  commit(map);
 }
 
 export function resetUsage() {

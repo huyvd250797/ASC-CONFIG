@@ -6,6 +6,7 @@ import { copyText } from '../lib/clipboard';
 import { getUsageFor, trackCopy, trackView } from '../lib/stats';
 import { useToast } from '../lib/toast';
 import { KindTag } from './common';
+import { useModalScrollLock } from '../lib/modalScrollLock';
 
 type Props = {
   record: AppRecord;
@@ -85,15 +86,7 @@ export function DetailModal({ record, onClose }: Props) {
     trackView(record);
   }, [record]);
 
-  // Khi popup mở thì khoá cuộn của nền, chỉ cuộn được bên trong popup.
-  useEffect(() => {
-    const { body } = document;
-    const previous = body.style.overflow;
-    body.style.overflow = 'hidden';
-    return () => {
-      body.style.overflow = previous;
-    };
-  }, []);
+  useModalScrollLock();
 
   const title = record.kind === 'config' ? record.maConfig : record.vanDe;
   const subtitle = record.kind === 'config' ? record.manHinh : record.module;
