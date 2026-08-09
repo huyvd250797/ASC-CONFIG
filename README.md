@@ -1,4 +1,4 @@
-# ASC-CONFIG v1.9.3
+# ASC-CONFIG v2.0.0
 
 Web app tra cứu **Config** và **Các lưu ý** vận hành, đọc dữ liệu trực tiếp từ Google Sheet.
 
@@ -232,9 +232,27 @@ Mỗi lần mở chi tiết một bản ghi được tính là **một lượt x
 - Tổng số bản ghi đã tra cứu, tổng lượt xem, tổng lượt chép
 - Xuất CSV hoặc xóa toàn bộ số liệu
 
-Số liệu lưu ở `localStorage` của trình duyệt (khóa `asc-config-usage-v1`) nên là thống kê riêng
-của từng máy, không đồng bộ giữa người dùng. Muốn thống kê chung toàn công ty thì cần một
-backend ghi nhận sự kiện — hiện app chạy hoàn toàn phía client, không có server.
+### Thống kê riêng máy hay dùng chung cả đội
+
+Mặc định số liệu lưu ở `localStorage` (khóa `asc-config-usage-v1`) nên mỗi máy một con số riêng.
+
+Khai báo `STATS_ENDPOINT` trong `src/config.ts` để bật chế độ **dùng chung**: mọi người dùng
+cùng ghi vào sheet `ThongKe` thông qua một Google Apps Script Web App. Popup thống kê khi đó có
+thêm công tắc **Toàn hệ thống / Của tôi**.
+
+Hướng dẫn triển khai đầy đủ: [`apps-script/HUONG-DAN.md`](apps-script/HUONG-DAN.md)
+
+Vài điểm về thiết kế:
+
+- Sự kiện được gom vào hàng đợi rồi gửi theo lô mỗi 10 giây, cộng thêm một lần đẩy nốt bằng
+  `sendBeacon` khi người dùng đóng tab. Không gửi từng cú click nên không làm chậm thao tác và
+  tiết kiệm hạn mức Apps Script.
+- Gửi hỏng thì hàng đợi được trả lại, không mất số đếm và cũng không hiện lỗi làm phiền.
+- Phía Apps Script bắt buộc dùng `LockService` bao quanh đoạn đọc-cộng-ghi, nếu không thì nhiều
+  người bấm cùng lúc sẽ ghi đè lẫn nhau và mất số đếm.
+- App vẫn ghi song song vào `localStorage`, nên mất mạng vẫn dùng được và số liệu hiện lên
+  tức thì không phải chờ server.
+- Bỏ trống `STATS_ENDPOINT` thì mọi thứ quay về như cũ, app không gọi mạng gì thêm.
 
 ## Thông báo thao tác
 
@@ -295,6 +313,12 @@ src/
   lib/pin.tsx                 Cổng xác thực mã PIN cho thao tác nhạy cảm
   lib/sha256.ts               SHA-256 tự viết, chạy được cả ngoài ngữ cảnh bảo mật
   lib/toast.tsx               Hệ thống thông báo dùng chung
+  lib/remoteStats.ts          Đồng bộ thống kê lên Apps Script (hàng đợi, gửi lô, đọc JSONP)
+  config.ts                   Khai báo endpoint và token thống kê dùng chung
+
+apps-script/
+  Code.gs                     Web App nhận và tổng hợp thống kê vào sheet ThongKe
+  HUONG-DAN.md                Hướng dẫn deploy từng bước
   components/ConfigGrid.tsx   Lưới sheet CONFIG
   components/NoteGrid.tsx     Lưới sheet Các lưu ý
   components/CardList.tsx     Chế độ xem thẻ cho cả hai loại

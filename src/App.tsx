@@ -42,6 +42,7 @@ import { StatsModal } from './components/StatsModal';
 import { useToast } from './lib/toast';
 import { useTheme } from './lib/theme';
 import { usePinGate } from './lib/pin';
+import { installFlushHooks } from './lib/remoteStats';
 import type { SortState } from './components/common';
 
 /** Chu kỳ kiểm tra Google Sheet (ms). */
@@ -244,6 +245,11 @@ export default function App() {
   useEffect(() => {
     void refresh(false);
   }, [refresh]);
+
+  // Gửi nốt thống kê đang chờ khi người dùng đóng tab hoặc chuyển đi.
+  useEffect(() => {
+    installFlushHooks();
+  }, []);
 
   // Kiểm tra định kỳ + kiểm tra ngay khi người dùng quay lại tab.
   useEffect(() => {
@@ -678,7 +684,7 @@ export default function App() {
           </span>
         </span>
         <span>
-          {configRecords.length} config · {noteRecords.length} lưu ý · v1.9.3
+          {configRecords.length} config · {noteRecords.length} lưu ý · v2.0.0
         </span>
       </footer>
 

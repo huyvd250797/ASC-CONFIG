@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import type { AppRecord, RecordKind } from './sheets';
+import { queueUsage } from './remoteStats';
 
 /**
  * Thống kê mức độ sử dụng từng bản ghi.
  *
- * Dữ liệu lưu tại localStorage của trình duyệt nên là số liệu riêng của từng máy,
- * không đồng bộ giữa người dùng. Đủ dùng để biết config nào hay được tra cứu nhất.
+ * Ghi ở hai nơi:
+ *  - localStorage của máy hiện tại: hiện ngay lập tức, dùng được cả khi mất mạng.
+ *  - Máy chủ Apps Script (nếu đã cấu hình STATS_ENDPOINT): số liệu dùng chung của cả đội.
  */
 
 const STORAGE_KEY = 'asc-config-usage-v1';
@@ -74,6 +76,7 @@ function bump(record: AppRecord, field: 'views' | 'copies') {
     lastAt: Date.now(),
   };
   commit(map);
+  queueUsage({ key: record.key, kind: record.kind, label: labelOf(record) }, field);
 }
 
 /** Ghi nhận một lần mở xem chi tiết bản ghi. */

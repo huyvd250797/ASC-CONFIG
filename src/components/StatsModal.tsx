@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
-import { ArrowDown, ArrowUp, Copy, Download, Eye, RotateCcw, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, ArrowDown, ArrowUp, Copy, Download, Eye, Loader2, RotateCcw, X } from 'lucide-react';
 import { resetUsage, useUsage, type UsageEntry } from '../lib/stats';
+import { fetchRemoteUsage, remoteStatsEnabled, resetRemoteUsage } from '../lib/remoteStats';
 import { useToast } from '../lib/toast';
 import { usePinGate } from '../lib/pin';
 
@@ -24,12 +25,39 @@ function formatTime(value: number) {
   });
 }
 
+type Scope = 'all' | 'mine';
+
 export function StatsModal({ onClose }: { onClose: () => void }) {
-  const entries = useUsage();
+  const localEntries = useUsage();
   const notify = useToast();
   const requirePin = usePinGate();
+  const shared = remoteStatsEnabled();
+
   const [sortKey, setSortKey] = useState<SortKey>('copies');
   const [descending, setDescending] = useState(true);
+  const [scope, setScope] = useState<Scope>(shared ? 'all' : 'mine');
+  const [remoteEntries, setRemoteEntries] = useState<UsageEntry[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [remoteError, setRemoteError] = useState('');
+
+  const loadRemote = useCallback(async () => {
+    if (!shared) return;
+    setLoading(true);
+    setRemoteError('');
+    try {
+      setRemoteEntries(await fetchRemoteUsage());
+    } catch (error) {
+      setRemoteError(error instanceof Error ? error.message : 'Không đọc được số liệu dùng chung.');
+    } finally {
+      setLoading(false);
+    }
+  }, [shared]);
+
+  useEffect(() => {
+    void loadRemote();
+  }, [loadRemote]);
+
+  const entries = scope === 'all' && shared ? remoteEntries : localEntries;
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -98,10 +126,30 @@ export function StatsModal({ onClose }: { onClose: () => void }) {
   };
 
   const clearAll = async () => {
-    const allowed = await requirePin('Xóa số liệu thống kê', 'Thao tác không thể hoàn tác, cần mã PIN quản trị.');
+    const target = scope === 'all' && shared ? 'toàn hệ thống' : 'trên máy này';
+    const allowed = await requirePin(
+      `Xóa số liệu thống kê ${target}`,
+      'Thao tác không thể hoàn tác, cần mã PIN quản trị.',
+    );
     if (!allowed) return;
+
+    if (scope === 'all' && shared) {
+      try {
+        await resetRemoteUsage();
+        setRemoteEntries([]);
+        notify({ kind: 'info', title: 'Đã xóa số liệu dùng chung của toàn hệ thống' });
+      } catch (error) {
+        notify({
+          kind: 'error',
+          title: 'Không xóa được số liệu dùng chung',
+          detail: error instanceof Error ? error.message : undefined,
+        });
+      }
+      return;
+    }
+
     resetUsage();
-    notify({ kind: 'info', title: 'Đã xóa toàn bộ số liệu thống kê' });
+    notify({ kind: 'info', title: 'Đã xóa số liệu thống kê trên máy này' });
   };
 
   return (
@@ -112,7 +160,32 @@ export function StatsModal({ onClose }: { onClose: () => void }) {
             <h2>Thống kê sử dụng</h2>
             <p className="detail-sub">
               {entries.length} bản ghi đã tra cứu · {totals.views} lượt xem · {totals.copies} lượt chép
+              {loading && scope === 'all' && (
+                <>
+                  {' · '}
+                  <Loader2 size={12} className="spin" /> đang tải
+                </>
+              )}
             </p>
+
+            {shared ? (
+              <div className="scope-switch" role="group" aria-label="Phạm vi thống kê">
+                <button
+                  type="button"
+                  className={scope === 'all' ? 'active' : ''}
+                  onClick={() => setScope('all')}
+                >
+                  Toàn hệ thống
+                </button>
+                <button
+                  type="button"
+                  className={scope === 'mine' ? 'active' : ''}
+                  onClick={() => setScope('mine')}
+                >
+                  Của tôi
+                </button>
+              </div>
+            ) : null}
           </div>
           <div className="detail-actions">
             <button type="button" className="copy-button" onClick={() => void exportCsv()} disabled={!entries.length}>
@@ -128,6 +201,16 @@ export function StatsModal({ onClose }: { onClose: () => void }) {
             </button>
           </div>
         </header>
+
+        {remoteError && scope === 'all' && (
+          <div className="stats-error" role="alert">
+            <AlertTriangle size={16} />
+            <span>{remoteError}</span>
+            <button type="button" className="copy-button" onClick={() => void loadRemote()}>
+              Thử lại
+            </button>
+          </div>
+        )}
 
         {entries.length === 0 ? (
           <div className="empty-state">
@@ -183,7 +266,13 @@ export function StatsModal({ onClose }: { onClose: () => void }) {
           </div>
         )}
 
-        <footer className="stats-foot">Số liệu lưu trên trình duyệt của máy này, không đồng bộ giữa các người dùng.</footer>
+        <footer className="stats-foot">
+          {shared
+            ? scope === 'all'
+              ? 'Số liệu tổng hợp từ mọi người dùng, lưu ở sheet ThongKe qua Apps Script.'
+              : 'Số liệu riêng của máy này, lưu ở trình duyệt.'
+            : 'Số liệu lưu trên trình duyệt của máy này. Khai báo STATS_ENDPOINT trong src/config.ts để dùng chung cho cả đội.'}
+        </footer>
       </section>
     </div>
   );

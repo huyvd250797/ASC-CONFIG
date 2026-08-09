@@ -2294,3 +2294,58 @@ button.ma-config.copyable:active {
   pointer-events: none;
   transition: opacity 1s ease, transform 1s ease;
 }
+
+/* ---------- Phạm vi thống kê ---------- */
+
+.scope-switch {
+  display: inline-flex;
+  gap: 3px;
+  margin-top: 10px;
+  padding: 3px;
+  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+  background: rgba(var(--sunken-rgb), 0.6);
+}
+
+.scope-switch button {
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.scope-switch button.active {
+  color: var(--on-accent);
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+}
+
+.detail-sub .spin {
+  vertical-align: -2px;
+}
+
+.stats-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 18px 0;
+  padding: 11px 13px;
+  border: 1px solid rgba(var(--danger-rgb), 0.4);
+  border-radius: 10px;
+  background: rgba(var(--danger-rgb), 0.09);
+  color: var(--danger-fg);
+  font-size: 12.5px;
+}
+
+.stats-error svg {
+  flex: none;
+  color: var(--danger);
+}
+
+.stats-error span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
