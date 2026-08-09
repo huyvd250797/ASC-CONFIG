@@ -258,7 +258,7 @@ export default function App() {
   }, [notify]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setStartupSplashVisible(false), 2500);
+    const timer = window.setTimeout(() => setStartupSplashVisible(false), 3000);
     return () => window.clearTimeout(timer);
   }, []);
 
@@ -611,299 +611,299 @@ export default function App() {
       )}
 
       <main className={`app-shell ${mobileCompactHeader ? 'mobile-header-pinned' : ''}`}>
-      <header className={`topbar ${mobileCompactHeader ? 'mobile-compact' : ''}`}>
-        <button
-          type="button"
-          className="brand"
-          onClick={resetApp}
-          title="Bấm để tải lại toàn bộ và đưa mọi thứ về mặc định"
-        >
-          <span className="brand-mark">ASC</span>
-          <span className="brand-text">
-            <strong>ASC-CONFIG<span className="compact-version"> V{APP_VERSION}</span></strong>
-            <span>Tra cứu Config &amp; Lưu ý vận hành — dữ liệu trực tiếp từ Google Sheet</span>
-          </span>
-        </button>
+        <header className={`topbar ${mobileCompactHeader ? 'mobile-compact' : ''}`}>
+          <button
+            type="button"
+            className="brand"
+            onClick={resetApp}
+            title="Bấm để tải lại toàn bộ và đưa mọi thứ về mặc định"
+          >
+            <span className="brand-mark">ASC</span>
+            <span className="brand-text">
+              <strong>ASC-CONFIG<span className="compact-version"> V{APP_VERSION}</span></strong>
+              <span>Tra cứu Config &amp; Lưu ý vận hành — dữ liệu trực tiếp từ Google Sheet</span>
+            </span>
+          </button>
 
-        <div className="kind-tabs" role="tablist" aria-label="Loại dữ liệu">
-          {KIND_TABS.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                role="tab"
-                aria-selected={kindView === tab.id}
-                className={`kind-tab ${tab.id} ${kindView === tab.id ? 'active' : ''}`}
-                onClick={() => setKindView(tab.id)}
-              >
-                <Icon size={15} />
-                <span>{tab.label}</span>
-                <b>{tab.count}</b>
+          <div className="kind-tabs" role="tablist" aria-label="Loại dữ liệu">
+            {KIND_TABS.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  role="tab"
+                  aria-selected={kindView === tab.id}
+                  className={`kind-tab ${tab.id} ${kindView === tab.id ? 'active' : ''}`}
+                  onClick={() => setKindView(tab.id)}
+                >
+                  <Icon size={15} />
+                  <span>{tab.label}</span>
+                  <b>{tab.count}</b>
+                </button>
+              );
+            })}
+          </div>
+
+          {mobileCompactHeader && (
+            <button
+              type="button"
+              className={`compact-search-toggle ${compactSearchOpen ? 'active' : ''} ${query ? 'has-query' : ''}`}
+              onClick={() => {
+                if (compactSearchOpen) {
+                  compactHeaderPinUntilRef.current = 0;
+                  compactSearchInputRef.current?.blur();
+                  setCompactSearchOpen(false);
+                  return;
+                }
+                // Giữ header compact khi iOS mở bàn phím và thay đổi visual viewport.
+                compactHeaderLatchedRef.current = true;
+                compactHeaderPinUntilRef.current = Date.now() + 1800;
+                setMobileCompactHeader(true);
+                setCompactSearchOpen(true);
+              }}
+              title={compactSearchOpen ? 'Đóng tìm kiếm' : 'Tìm kiếm'}
+              aria-label={compactSearchOpen ? 'Đóng tìm kiếm' : 'Mở tìm kiếm'}
+              aria-expanded={compactSearchOpen}
+            >
+              {compactSearchOpen ? <X size={17} /> : <Search size={17} />}
+            </button>
+          )}
+
+          <div className="topbar-actions">
+            <button
+              type="button"
+              className="icon-toggle"
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Chuyển sang nền sáng' : 'Chuyển sang nền tối'}
+              aria-label="Đổi chế độ hiển thị"
+            >
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
+            <button
+              type="button"
+              className="icon-toggle"
+              onClick={() => setStatsOpen(true)}
+              title="Thống kê lượt xem và sao chép"
+            >
+              <BarChart3 size={16} />
+            </button>
+            <button
+              type="button"
+              className="icon-toggle"
+              onClick={() => void refresh(false)}
+              disabled={refreshing}
+              title="Tải lại ngay"
+            >
+              {refreshing ? <Loader2 size={16} className="spin" /> : <RefreshCw size={16} />}
+            </button>
+          </div>
+
+          {mobileCompactHeader && compactSearchOpen && (
+            <form
+              className="compact-mobile-search"
+              role="search"
+              onSubmit={submitCompactSearch}
+            >
+              <Search size={17} aria-hidden />
+              <input
+                ref={compactSearchInputRef}
+                value={queryInput}
+                onChange={(event) => {
+                  setQueryInput(event.target.value);
+                  if (!event.target.value.trim()) setQuery('');
+                }}
+                placeholder="Tìm mã config, module, vấn đề..."
+                aria-label="Từ khóa tìm kiếm trên mobile"
+              />
+              {queryInput && (
+                <button
+                  type="button"
+                  className="compact-search-clear"
+                  onClick={() => {
+                    setQueryInput('');
+                    setQuery('');
+                    compactSearchInputRef.current?.focus();
+                  }}
+                  aria-label="Xóa từ khóa"
+                >
+                  <X size={15} />
+                </button>
+              )}
+              <button type="submit" className="compact-search-submit" aria-label="Tìm kiếm">
+                <Search size={16} />
               </button>
-            );
-          })}
-        </div>
+            </form>
+          )}
+        </header>
 
-        {mobileCompactHeader && (
-          <button
-            type="button"
-            className={`compact-search-toggle ${compactSearchOpen ? 'active' : ''} ${query ? 'has-query' : ''}`}
-            onClick={() => {
-              if (compactSearchOpen) {
-                compactHeaderPinUntilRef.current = 0;
-                compactSearchInputRef.current?.blur();
-                setCompactSearchOpen(false);
-                return;
-              }
-              // Giữ header compact khi iOS mở bàn phím và thay đổi visual viewport.
-              compactHeaderLatchedRef.current = true;
-              compactHeaderPinUntilRef.current = Date.now() + 1800;
-              setMobileCompactHeader(true);
-              setCompactSearchOpen(true);
-            }}
-            title={compactSearchOpen ? 'Đóng tìm kiếm' : 'Tìm kiếm'}
-            aria-label={compactSearchOpen ? 'Đóng tìm kiếm' : 'Mở tìm kiếm'}
-            aria-expanded={compactSearchOpen}
-          >
-            {compactSearchOpen ? <X size={17} /> : <Search size={17} />}
-          </button>
-        )}
-
-        <div className="topbar-actions">
-          <button
-            type="button"
-            className="icon-toggle"
-            onClick={toggleTheme}
-            title={theme === 'dark' ? 'Chuyển sang nền sáng' : 'Chuyển sang nền tối'}
-            aria-label="Đổi chế độ hiển thị"
-          >
-            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-          <button
-            type="button"
-            className="icon-toggle"
-            onClick={() => setStatsOpen(true)}
-            title="Thống kê lượt xem và sao chép"
-          >
-            <BarChart3 size={16} />
-          </button>
-          <button
-            type="button"
-            className="icon-toggle"
-            onClick={() => void refresh(false)}
-            disabled={refreshing}
-            title="Tải lại ngay"
-          >
-            {refreshing ? <Loader2 size={16} className="spin" /> : <RefreshCw size={16} />}
-          </button>
-        </div>
-
-        {mobileCompactHeader && compactSearchOpen && (
-          <form
-            className="compact-mobile-search"
-            role="search"
-            onSubmit={submitCompactSearch}
-          >
-            <Search size={17} aria-hidden />
+        <section className="control-bar">
+          <form className="search-box" onSubmit={submitSearch} role="search">
+            <Search size={19} />
             <input
-              ref={compactSearchInputRef}
               value={queryInput}
               onChange={(event) => {
                 setQueryInput(event.target.value);
                 if (!event.target.value.trim()) setQuery('');
               }}
-              placeholder="Tìm mã config, module, vấn đề..."
-              aria-label="Từ khóa tìm kiếm trên mobile"
+              placeholder="Nhập nội dung rồi nhấn Enter: mã config, module, màn hình, vấn đề, hướng xử lý..."
+              aria-label="Từ khóa tìm kiếm"
             />
             {queryInput && (
               <button
                 type="button"
-                className="compact-search-clear"
+                className="clear-button"
                 onClick={() => {
                   setQueryInput('');
                   setQuery('');
-                  compactSearchInputRef.current?.focus();
                 }}
                 aria-label="Xóa từ khóa"
               >
-                <X size={15} />
+                <X size={17} />
               </button>
             )}
-            <button type="submit" className="compact-search-submit" aria-label="Tìm kiếm">
-              <Search size={16} />
+            <button
+              type="button"
+              className={`phrase-toggle ${phraseMode ? 'active' : ''}`}
+              aria-pressed={phraseMode}
+              onClick={() => setPhraseMode((value) => !value)}
+              title={
+                phraseMode
+                  ? 'Đang tìm nguyên cụm: chỉ ra bản ghi chứa đúng cả cụm bạn gõ. Bấm để quay lại tìm rời từng từ.'
+                  : 'Đang tìm rời từng từ. Bấm để chỉ lấy bản ghi chứa đúng nguyên cụm bạn gõ.'
+              }
+            >
+              <TextQuote size={15} />
+              <span>Nguyên cụm</span>
+            </button>
+
+            <button type="submit" className="search-submit">
+              <span>Tìm kiếm</span>
+              {query && <span className="search-submit-count">{activeList.length} kết quả</span>}
             </button>
           </form>
+
+          <div className="filter-row">
+            <SearchableSelect
+              label="Phân hệ"
+              allLabel="Tất cả phân hệ"
+              value={phanHeFilter}
+              options={phanHeOptions.map(([name]) => name)}
+              onChange={setPhanHeFilter}
+              disabled={phanHeDisabled}
+              hint={phanHeDisabled ? 'Sheet Các lưu ý không có cột Phân hệ' : undefined}
+            />
+
+            <SearchableSelect
+              label="Module"
+              allLabel="Tất cả module"
+              value={moduleFilter}
+              options={moduleOptions.map(([name]) => name)}
+              onChange={setModuleFilter}
+            />
+
+            <div className="action-group">
+              <button
+                type="button"
+                className="icon-action"
+                onClick={clearFilters}
+                disabled={!filtersActive}
+                title="Xóa bộ lọc và từ khóa"
+                aria-label="Xóa bộ lọc"
+              >
+                <FilterX size={15} />
+              </button>
+
+              <div className="view-switch" role="group" aria-label="Kiểu hiển thị">
+                <button type="button" className={view === 'grid' ? 'active' : ''} onClick={() => setView('grid')} title="Dạng lưới">
+                  <Rows3 size={15} />
+                </button>
+                <button type="button" className={view === 'card' ? 'active' : ''} onClick={() => setView('card')} title="Dạng thẻ">
+                  <LayoutGrid size={15} />
+                </button>
+              </div>
+
+              <button
+                type="button"
+                className="icon-action"
+                onClick={() => void exportCsv()}
+                disabled={!activeList.length}
+                title="Xuất CSV phần dữ liệu đang lọc"
+                aria-label="Xuất CSV"
+              >
+                <Download size={15} />
+              </button>
+            </div>
+          </div>
+
+        </section>
+
+        {errors.length > 0 && (
+          <section className="notice" role="alert">
+            <AlertTriangle size={20} />
+            <div>
+              <strong>Chưa đọc được đầy đủ dữ liệu</strong>
+              <p>{errors.join(' | ')}</p>
+            </div>
+          </section>
         )}
-      </header>
 
-      <section className="control-bar">
-        <form className="search-box" onSubmit={submitSearch} role="search">
-          <Search size={19} />
-          <input
-            value={queryInput}
-            onChange={(event) => {
-              setQueryInput(event.target.value);
-              if (!event.target.value.trim()) setQuery('');
-            }}
-            placeholder="Nhập nội dung rồi nhấn Enter: mã config, module, màn hình, vấn đề, hướng xử lý..."
-            aria-label="Từ khóa tìm kiếm"
-          />
-          {queryInput && (
-            <button
-              type="button"
-              className="clear-button"
-              onClick={() => {
-                setQueryInput('');
-                setQuery('');
-              }}
-              aria-label="Xóa từ khóa"
-            >
-              <X size={17} />
-            </button>
-          )}
-          <button
-            type="button"
-            className={`phrase-toggle ${phraseMode ? 'active' : ''}`}
-            aria-pressed={phraseMode}
-            onClick={() => setPhraseMode((value) => !value)}
-            title={
-              phraseMode
-                ? 'Đang tìm nguyên cụm: chỉ ra bản ghi chứa đúng cả cụm bạn gõ. Bấm để quay lại tìm rời từng từ.'
-                : 'Đang tìm rời từng từ. Bấm để chỉ lấy bản ghi chứa đúng nguyên cụm bạn gõ.'
-            }
-          >
-            <TextQuote size={15} />
-            <span>Nguyên cụm</span>
-          </button>
-
-          <button type="submit" className="search-submit">
-            <span>Tìm kiếm</span>
-            {query && <span className="search-submit-count">{activeList.length} kết quả</span>}
-          </button>
-        </form>
-
-        <div className="filter-row">
-          <SearchableSelect
-            label="Phân hệ"
-            allLabel="Tất cả phân hệ"
-            value={phanHeFilter}
-            options={phanHeOptions.map(([name]) => name)}
-            onChange={setPhanHeFilter}
-            disabled={phanHeDisabled}
-            hint={phanHeDisabled ? 'Sheet Các lưu ý không có cột Phân hệ' : undefined}
-          />
-
-          <SearchableSelect
-            label="Module"
-            allLabel="Tất cả module"
-            value={moduleFilter}
-            options={moduleOptions.map(([name]) => name)}
-            onChange={setModuleFilter}
-          />
-
-          <div className="action-group">
-            <button
-              type="button"
-              className="icon-action"
-              onClick={clearFilters}
-              disabled={!filtersActive}
-              title="Xóa bộ lọc và từ khóa"
-              aria-label="Xóa bộ lọc"
-            >
-              <FilterX size={15} />
-            </button>
-
-            <div className="view-switch" role="group" aria-label="Kiểu hiển thị">
-              <button type="button" className={view === 'grid' ? 'active' : ''} onClick={() => setView('grid')} title="Dạng lưới">
-                <Rows3 size={15} />
-              </button>
-              <button type="button" className={view === 'card' ? 'active' : ''} onClick={() => setView('card')} title="Dạng thẻ">
-                <LayoutGrid size={15} />
-              </button>
+        {initialLoading ? (
+          <section className="results">
+            <div className="empty-state">
+              <Loader2 className="spin" size={28} />
+              <h3>Đang đọc Google Sheet</h3>
+              <p>App sẽ hiển thị dữ liệu ngay khi đọc xong hai sheet CONFIG và Các lưu ý.</p>
             </div>
-
-            <button
-              type="button"
-              className="icon-action"
-              onClick={() => void exportCsv()}
-              disabled={!activeList.length}
-              title="Xuất CSV phần dữ liệu đang lọc"
-              aria-label="Xuất CSV"
-            >
-              <Download size={15} />
-            </button>
-          </div>
-        </div>
-
-      </section>
-
-      {errors.length > 0 && (
-        <section className="notice" role="alert">
-          <AlertTriangle size={20} />
-          <div>
-            <strong>Chưa đọc được đầy đủ dữ liệu</strong>
-            <p>{errors.join(' | ')}</p>
-          </div>
-        </section>
-      )}
-
-      {initialLoading ? (
-        <section className="results">
-          <div className="empty-state">
-            <Loader2 className="spin" size={28} />
-            <h3>Đang đọc Google Sheet</h3>
-            <p>App sẽ hiển thị dữ liệu ngay khi đọc xong hai sheet CONFIG và Các lưu ý.</p>
-          </div>
-        </section>
-      ) : (
-        <section className="results" aria-live="polite" ref={resultsRef}>
-          {activeList.length === 0 ? (
-            <EmptyResult />
-          ) : view === 'grid' ? (
-            kindView === 'config' ? (
-              <ConfigGrid
-                records={activeList as ConfigRecord[]}
-                tokens={highlightTokens}
-                sort={configSort}
-                onSort={makeSortHandler('config')}
-                onSelect={setSelected}
-              />
+          </section>
+        ) : (
+          <section className="results" aria-live="polite" ref={resultsRef}>
+            {activeList.length === 0 ? (
+              <EmptyResult />
+            ) : view === 'grid' ? (
+              kindView === 'config' ? (
+                <ConfigGrid
+                  records={activeList as ConfigRecord[]}
+                  tokens={highlightTokens}
+                  sort={configSort}
+                  onSort={makeSortHandler('config')}
+                  onSelect={setSelected}
+                />
+              ) : (
+                <NoteGrid
+                  records={activeList as NoteRecord[]}
+                  tokens={highlightTokens}
+                  sort={noteSort}
+                  onSort={makeSortHandler('note')}
+                  onSelect={setSelected}
+                />
+              )
             ) : (
-              <NoteGrid
-                records={activeList as NoteRecord[]}
-                tokens={highlightTokens}
-                sort={noteSort}
-                onSort={makeSortHandler('note')}
-                onSelect={setSelected}
-              />
-            )
-          ) : (
-            <div className="card-list-wrap">
-              <CardList records={activeList} tokens={highlightTokens} onSelect={setSelected} />
-            </div>
-          )}
+              <div className="card-list-wrap">
+                <CardList records={activeList} tokens={highlightTokens} onSelect={setSelected} />
+              </div>
+            )}
 
-        </section>
-      )}
+          </section>
+        )}
 
-      <footer className="app-footer" title={`Tự kiểm tra mỗi ${POLL_INTERVAL_MS / 1000} giây · lần kiểm tra gần nhất ${formatClock(lastCheckedAt)}`}>
-        <div className="footer-left">
-          <span className="live-dot on" aria-hidden />
-          <span className="footer-source-label">Nguồn dữ liệu:</span>
-          <button type="button" className="link-button footer-link" onClick={() => void openSource()}>Google Sheet ASC-CONFIG</button>
-          <span className="footer-sync">· Cập nhật lần cuối: {formatFull(lastChangedAt)}</span>
-        </div>
-        <div className="footer-right">
-          <span>{configRecords.length} config</span>
-          <span>· {noteRecords.length} lưu ý</span>
-          <span>· v{APP_VERSION}</span>
-        </div>
-      </footer>
+        <footer className="app-footer" title={`Tự kiểm tra mỗi ${POLL_INTERVAL_MS / 1000} giây · lần kiểm tra gần nhất ${formatClock(lastCheckedAt)}`}>
+          <div className="footer-left">
+            <span className="live-dot on" aria-hidden />
+            <span className="footer-source-label">Nguồn dữ liệu:</span>
+            <button type="button" className="link-button footer-link" onClick={() => void openSource()}>Google Sheet ASC-CONFIG</button>
+            <span className="footer-sync">· Cập nhật lần cuối: {formatFull(lastChangedAt)}</span>
+          </div>
+          <div className="footer-right">
+            <span>{configRecords.length} config</span>
+            <span>· {noteRecords.length} lưu ý</span>
+            <span>· v{APP_VERSION}</span>
+          </div>
+        </footer>
 
-      <ScrollTopButton containerRef={resultsRef} />
+        <ScrollTopButton containerRef={resultsRef} />
 
-      {selected && <DetailModal record={selected} onClose={() => setSelected(null)} />}
-      {statsOpen && <StatsModal records={[...configRecords, ...noteRecords]} onClose={() => setStatsOpen(false)} />}
+        {selected && <DetailModal record={selected} onClose={() => setSelected(null)} />}
+        {statsOpen && <StatsModal records={[...configRecords, ...noteRecords]} onClose={() => setStatsOpen(false)} />}
       </main>
     </>
   );
