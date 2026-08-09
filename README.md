@@ -1,4 +1,4 @@
-# ASC-CONFIG v2.0.0
+# ASC-CONFIG v2.1.0
 
 Web app tra cứu **Config** và **Các lưu ý** vận hành, đọc dữ liệu trực tiếp từ Google Sheet.
 
@@ -278,6 +278,30 @@ Phần khớp được tô sáng. Bỏ dấu tiếng Việt vẫn tìm được 
 
 Token từ 3 ký tự trở xuống bắt buộc khớp chính xác — tiếng Việt nhiều từ ngắn, nếu cho sai
 1 ký tự thì `nho` sẽ khớp `cho`, `ban` khớp `bao`... khiến kết quả đầy nhiễu.
+
+### Chế độ "Nguyên cụm"
+
+Nút **Nguyên cụm** nằm ngay trong ô tìm kiếm, **mặc định tắt**. Bật lên là kết quả lọc lại ngay
+mà không cần bấm Tìm kiếm lần nữa.
+
+| | Mặc định (tắt) | Nguyên cụm (bật) |
+|---|---|---|
+| Cách hiểu ô nhập | mỗi từ là một điều kiện riêng, khớp ở đâu trong bản ghi cũng được | cả ô nhập là **một cụm liền** |
+| Gõ `tuyen sinh` | ra mọi bản ghi có cả `tuyển` lẫn `sinh`, kể cả khi hai từ nằm cách xa nhau (vd: *"quản lý **tuyển** dụng nhân **sinh** viên"*) | chỉ ra bản ghi chứa đúng cụm `tuyển sinh` |
+| `Cấu hình tuyển sinh đầu vào` | ✅ | ✅ |
+| `Quản lý tuyển dụng nhân sự` | ✅ | ❌ loại |
+| `Danh sách sinh viên tốt nghiệp` | ❌ (thiếu *tuyển*) | ❌ loại |
+
+Chế độ nguyên cụm vẫn "gần đúng" ở những mặt sau: bỏ dấu tiếng Việt, gõ dính liền
+(`tuyensinh` ↔ `tuyển sinh`), thừa/thiếu khoảng trắng giữa các từ.
+
+Riêng lỗi gõ sai ký tự thì chỉ được tha khi cụm đủ dài (từ 13 ký tự trở lên). Lý do: tiếng Việt
+có quá nhiều từ chỉ khác nhau một ký tự — nếu tha cho cụm ngắn thì `sinh tuyen` sẽ khớp nhầm
+`hinh tuyen`, đúng loại nhiễu mà chế độ này sinh ra để tránh.
+
+Về kỹ thuật, phần khớp gần đúng dùng thuật toán Sellers (tìm đoạn con có khoảng cách chỉnh sửa
+nhỏ nhất) và chỉ cho phép đoạn khớp bắt đầu tại đầu một từ, để cụm tìm kiếm không dính vào khúc
+giữa của một từ khác. Quét 2000 bản ghi mất khoảng 6ms.
 
 ## Dữ liệu realtime
 

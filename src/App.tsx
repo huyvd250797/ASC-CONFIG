@@ -14,6 +14,7 @@ import {
   Rows3,
   Sun,
   Search,
+  TextQuote,
   X,
 } from 'lucide-react';
 import {
@@ -30,7 +31,7 @@ import {
   type LookupPayload,
   type RecordKind,
 } from './lib/sheets';
-import { scoreRecord, tokenize } from './lib/text';
+import { scorePhrase, scoreRecord, toPhrase, tokenize } from './lib/text';
 import { registerTones } from './lib/colors';
 import { ConfigGrid } from './components/ConfigGrid';
 import { NoteGrid } from './components/NoteGrid';
@@ -151,6 +152,8 @@ export default function App() {
 
   const [queryInput, setQueryInput] = useState('');
   const [query, setQuery] = useState('');
+  /** Bật: coi cả ô nhập là một cụm liền, thay vì khớp rời từng từ. */
+  const [phraseMode, setPhraseMode] = useState(false);
   const [kindView, setKindView] = useState<RecordKind>(DEFAULTS.kindView);
   const [phanHeFilter, setPhanHeFilter] = useState<string>(ALL);
   const [moduleFilter, setModuleFilter] = useState<string>(ALL);
@@ -315,13 +318,27 @@ export default function App() {
   }, [moduleOptions, moduleFilter]);
 
   const tokens = useMemo(() => tokenize(query), [query]);
+  const phrase = useMemo(() => toPhrase(query), [query]);
+
+  /** Cả hai chế độ dùng chung một hàm chấm điểm, chỉ khác cách hiểu ô nhập. */
+  const matches = useCallback(
+    (fields: Parameters<typeof scoreRecord>[1]) =>
+      phraseMode ? scorePhrase(phrase, fields) : scoreRecord(tokens, fields),
+    [phraseMode, phrase, tokens],
+  );
+
+  /** Phần được tô sáng: cả cụm khi bật chế độ nguyên cụm, từng từ khi tắt. */
+  const highlightTokens = useMemo(
+    () => (phraseMode ? (phrase ? [phrase] : []) : tokens),
+    [phraseMode, phrase, tokens],
+  );
 
   const filteredConfig = useMemo(() => {
     const scored: Array<{ record: ConfigRecord; score: number }> = [];
     for (const record of configRecords) {
       if (phanHeFilter !== ALL && (record.phanHe || '(Không xác định)') !== phanHeFilter) continue;
       if (moduleFilter !== ALL && (record.module || '(Không có Module)') !== moduleFilter) continue;
-      const score = scoreRecord(tokens, record.search);
+      const score = matches(record.search);
       if (score <= 0) continue;
       scored.push({ record, score });
     }
@@ -337,13 +354,13 @@ export default function App() {
       scored.sort((a, b) => compare(a.record[key], b.record[key]) * direction || a.record.order - b.record.order);
     }
     return scored.map((item) => item.record);
-  }, [configRecords, phanHeFilter, moduleFilter, tokens, configSort]);
+  }, [configRecords, phanHeFilter, moduleFilter, matches, tokens, configSort]);
 
   const filteredNotes = useMemo(() => {
     const scored: Array<{ record: NoteRecord; score: number }> = [];
     for (const record of noteRecords) {
       if (moduleFilter !== ALL && (record.module || '(Không có Module)') !== moduleFilter) continue;
-      const score = scoreRecord(tokens, record.search);
+      const score = matches(record.search);
       if (score <= 0) continue;
       scored.push({ record, score });
     }
@@ -358,7 +375,7 @@ export default function App() {
       scored.sort((a, b) => compare(a.record[key], b.record[key]) * direction || a.record.order - b.record.order);
     }
     return scored.map((item) => item.record);
-  }, [noteRecords, moduleFilter, tokens, noteSort]);
+  }, [noteRecords, moduleFilter, matches, tokens, noteSort]);
 
   const activeList: AppRecord[] = kindView === 'config' ? filteredConfig : filteredNotes;
 
@@ -372,6 +389,7 @@ export default function App() {
     notify({ kind: 'info', title: 'Đã bỏ toàn bộ bộ lọc', duration: 2000 });
     setQueryInput('');
     setQuery('');
+    setPhraseMode(false);
     setPhanHeFilter(ALL);
     setModuleFilter(ALL);
     setConfigSort(DEFAULTS.sort);
@@ -382,6 +400,7 @@ export default function App() {
   const resetApp = () => {
     setQueryInput('');
     setQuery('');
+    setPhraseMode(false);
     setPhanHeFilter(ALL);
     setModuleFilter(ALL);
     setKindView(DEFAULTS.kindView);
@@ -461,7 +480,7 @@ export default function App() {
     else notify({ kind: 'error', title: 'Không có dữ liệu để xuất' });
   };
 
-  const filtersActive = Boolean(query) || phanHeFilter !== ALL || moduleFilter !== ALL;
+  const filtersActive = Boolean(query) || phraseMode || phanHeFilter !== ALL || moduleFilter !== ALL;
 
   const phanHeDisabled = kindView === 'note';
 
@@ -560,6 +579,21 @@ export default function App() {
               <X size={17} />
             </button>
           )}
+          <button
+            type="button"
+            className={`phrase-toggle ${phraseMode ? 'active' : ''}`}
+            aria-pressed={phraseMode}
+            onClick={() => setPhraseMode((value) => !value)}
+            title={
+              phraseMode
+                ? 'Đang tìm nguyên cụm: chỉ ra bản ghi chứa đúng cả cụm bạn gõ. Bấm để quay lại tìm rời từng từ.'
+                : 'Đang tìm rời từng từ. Bấm để chỉ lấy bản ghi chứa đúng nguyên cụm bạn gõ.'
+            }
+          >
+            <TextQuote size={15} />
+            <span>Nguyên cụm</span>
+          </button>
+
           <button type="submit" className="search-submit">
             Tìm kiếm
           </button>
@@ -646,7 +680,7 @@ export default function App() {
             kindView === 'config' ? (
               <ConfigGrid
                 records={activeList as ConfigRecord[]}
-                tokens={tokens}
+                tokens={highlightTokens}
                 sort={configSort}
                 onSort={makeSortHandler('config')}
                 onSelect={setSelected}
@@ -654,7 +688,7 @@ export default function App() {
             ) : (
               <NoteGrid
                 records={activeList as NoteRecord[]}
-                tokens={tokens}
+                tokens={highlightTokens}
                 sort={noteSort}
                 onSort={makeSortHandler('note')}
                 onSelect={setSelected}
@@ -662,7 +696,7 @@ export default function App() {
             )
           ) : (
             <div className="card-list-wrap">
-              <CardList records={activeList} tokens={tokens} onSelect={setSelected} />
+              <CardList records={activeList} tokens={highlightTokens} onSelect={setSelected} />
             </div>
           )}
 
@@ -684,7 +718,7 @@ export default function App() {
           </span>
         </span>
         <span>
-          {configRecords.length} config · {noteRecords.length} lưu ý · v2.0.0
+          {configRecords.length} config · {noteRecords.length} lưu ý · v2.1.0
         </span>
       </footer>
 
