@@ -226,6 +226,9 @@ body {
   background-attachment: fixed;
 }
 
+body, #root, .app-shell { -webkit-user-select: none; user-select: none; }
+input, textarea { -webkit-user-select: text; user-select: text; }
+
 button,
 input,
 select {
@@ -603,6 +606,10 @@ mark {
 
 .search-submit {
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   padding: 8px 18px;
   border: 0;
   border-radius: 9px;
@@ -612,9 +619,8 @@ mark {
   background: linear-gradient(135deg, var(--accent-2), var(--accent));
 }
 
-.search-submit:hover {
-  filter: brightness(1.08);
-}
+.search-submit:hover { filter: brightness(1.08); }
+.search-submit-count { padding-left: 7px; border-left: 1px solid rgba(255,255,255,.38); font-size: 11px; font-weight: 700; white-space: nowrap; opacity: .92; }
 
 .filter-row {
   display: flex;
@@ -1313,28 +1319,10 @@ button.ma-config.copyable:active {
 
 /* ---------- Footer ---------- */
 
-.app-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  font-size: 11.5px;
-  color: var(--dim);
-  padding: 0 4px;
-  overflow-wrap: anywhere;
-}
-
-.footer-source {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.footer-sync {
-  color: var(--muted);
-}
+.app-footer { display:flex; align-items:center; justify-content:flex-start; gap:5px; flex-wrap:nowrap; min-width:0; padding:0 4px; overflow:hidden; white-space:nowrap; font-size:10.5px; line-height:1.25; color:var(--dim); }
+.app-footer > * { flex:none; }
+.footer-link { font-size:inherit; }
+.footer-sync { color:var(--muted); }
 
 /* ---------- Toast ---------- */
 
@@ -1448,8 +1436,9 @@ button.ma-config.copyable:active {
   position: fixed;
   inset: 0;
   z-index: 80;
-  overscroll-behavior: contain;
-  touch-action: none;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1679,10 +1668,14 @@ button.ma-config.copyable:active {
   }
 
   /* Thanh tiêu đề: thương hiệu một hàng, tab và trạng thái xuống hàng riêng */
-  .topbar {
-    gap: 10px;
-    padding: 10px 12px;
-  }
+  .topbar { position:sticky; top:0; z-index:42; gap:10px; padding:10px 12px; transition:padding .18s ease,gap .18s ease,border-radius .18s ease; }
+  .topbar.mobile-compact { flex-wrap:nowrap; gap:6px; padding:5px 8px; border-radius:0 0 12px 12px; background:var(--modal-bg); box-shadow:0 8px 22px rgba(var(--shadow-rgb),.22); }
+  .topbar.mobile-compact .brand { flex:1 1 auto; width:auto; min-width:0; margin:0; padding:5px 7px; }
+  .topbar.mobile-compact .brand-mark, .topbar.mobile-compact .brand-text > span, .topbar.mobile-compact .kind-tab > span, .topbar.mobile-compact .kind-tab > b, .topbar.mobile-compact .topbar-actions { display:none; }
+  .topbar.mobile-compact .brand-text strong { font-size:14px; white-space:nowrap; }
+  .topbar.mobile-compact .kind-tabs { flex:none; margin-left:auto; gap:5px; }
+  .topbar.mobile-compact .kind-tab { flex:none; width:34px; height:34px; padding:0; }
+  .topbar.mobile-compact .kind-tab svg { width:17px; height:17px; }
 
   .topbar > *,
   .control-bar > * {
@@ -1855,21 +1848,16 @@ button.ma-config.copyable:active {
     height: 44px;
   }
 
-  .app-footer {
-    justify-content: center;
-    text-align: center;
-  }
-
-  .footer-source {
-    justify-content: center;
-  }
+  .app-shell { padding-bottom:38px; }
+  .app-footer { position:fixed; left:0; right:0; bottom:0; z-index:44; justify-content:center; width:100%; padding:5px 8px calc(5px + env(safe-area-inset-bottom)); border-top:1px solid var(--line); background:var(--modal-bg); box-shadow:0 -5px 18px rgba(var(--shadow-rgb),.14); font-size:9.5px; text-align:center; }
+  .app-footer > .live-dot, .app-footer > .footer-link, .app-footer > .footer-stats { display:none; }
 }
 
 
 /* ---------- Popup thống kê ---------- */
 
 .stats-modal {
-  width: min(880px, 100%);
+  width: min(1180px, 100%);
   border-top-color: rgba(var(--accent-rgb), 0.5);
 }
 
@@ -1878,9 +1866,7 @@ button.ma-config.copyable:active {
 }
 
 .stats-wrap {
-  flex: 1;
-  min-height: 0;
-  margin: 14px 18px 0;
+  flex: 1; min-height: 0; margin: 14px 18px 0; overscroll-behavior: contain; touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch;
 }
 
 .stats-grid td {
@@ -1888,7 +1874,7 @@ button.ma-config.copyable:active {
 }
 
 .stats-grid {
-  min-width: 600px;
+  min-width: 1080px;
   table-layout: fixed;
 }
 
@@ -1932,11 +1918,12 @@ button.ma-config.copyable:active {
 }
 
 .stat-code {
-  font-family: var(--mono);
-  font-weight: 700;
-  font-size: 12.5px;
-  color: var(--link);
+  font-family: var(--mono); font-weight: 700; font-size: 12.5px; color: var(--link);
 }
+.stat-phanhe { width: 160px; }
+.stat-module { width: 190px; overflow-wrap:anywhere; line-height:1.45; }
+.stat-phanhe-chip { max-width:100%; white-space:normal; overflow-wrap:anywhere; }
+.stat-empty { color:var(--dim); }
 
 .stat-num {
   width: 104px;
@@ -1980,6 +1967,11 @@ button.ma-config.copyable:active {
 .usage-chip svg {
   opacity: 0.7;
 }
+
+.stats-loading { flex:1; min-height:280px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:9px; padding:36px 20px; text-align:center; color:var(--muted); }
+.stats-loading svg { color:var(--accent); }
+.stats-loading h3 { margin:4px 0 0; color:var(--text); font-size:16px; }
+.stats-loading p { margin:0; font-size:13px; }
 
 .stats-foot {
   flex: none;

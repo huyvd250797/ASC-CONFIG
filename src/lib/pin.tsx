@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { KeyRound, X } from 'lucide-react';
 import { sha256Hex } from './sha256';
+import { useModalScrollLock } from './modalScrollLock';
 
 /**
  * Yêu cầu nhập mã PIN trước khi cho phép một thao tác nhạy cảm.
@@ -51,15 +52,9 @@ function PinDialog({ request, onClose }: { request: PinRequest; onClose: (allowe
   const [shake, setShake] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    inputRef.current?.focus();
-    const { body } = document;
-    const previous = body.style.overflow;
-    body.style.overflow = 'hidden';
-    return () => {
-      body.style.overflow = previous;
-    };
-  }, []);
+  useModalScrollLock();
+
+  useEffect(() => { inputRef.current?.focus(); }, []);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -111,6 +106,7 @@ function PinDialog({ request, onClose }: { request: PinRequest; onClose: (allowe
           <input
             ref={inputRef}
             className="pin-input"
+            type="password"
             inputMode="numeric"
             autoComplete="off"
             maxLength={PIN_LENGTH}

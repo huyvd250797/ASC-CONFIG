@@ -21,6 +21,7 @@ export async function copyText(text: string): Promise<boolean> {
     const textarea = document.createElement('textarea');
     textarea.value = text;
     textarea.setAttribute('readonly', '');
+    textarea.dataset.allowNativeCopy = 'true';
     textarea.style.position = 'fixed';
     textarea.style.top = '-1000px';
     textarea.style.opacity = '0';

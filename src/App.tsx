@@ -145,6 +145,7 @@ export default function App() {
   const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null);
   const [lastChangedAt, setLastChangedAt] = useState<Date | null>(null);
   const [statsOpen, setStatsOpen] = useState(false);
+  const [mobileCompactHeader, setMobileCompactHeader] = useState(false);
   const notify = useToast();
   const { theme, toggle: toggleTheme } = useTheme();
   const requirePin = usePinGate();
@@ -252,6 +253,25 @@ export default function App() {
   // Gửi nốt thống kê đang chờ khi người dùng đóng tab hoặc chuyển đi.
   useEffect(() => {
     installFlushHooks();
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 960px)');
+    const update = () => setMobileCompactHeader(media.matches && window.scrollY > 72);
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    media.addEventListener('change', update);
+    return () => { window.removeEventListener('scroll', update); media.removeEventListener('change', update); };
+  }, []);
+
+  useEffect(() => {
+    const blockManualCopy = (event: ClipboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest('[data-allow-native-copy="true"]')) return;
+      event.preventDefault();
+    };
+    document.addEventListener('copy', blockManualCopy, true);
+    return () => document.removeEventListener('copy', blockManualCopy, true);
   }, []);
 
   // Kiểm tra định kỳ + kiểm tra ngay khi người dùng quay lại tab.
@@ -491,7 +511,7 @@ export default function App() {
 
   return (
     <main className="app-shell">
-      <header className="topbar">
+      <header className={`topbar ${mobileCompactHeader ? 'mobile-compact' : ''}`}>
         <button
           type="button"
           className="brand"
@@ -595,7 +615,8 @@ export default function App() {
           </button>
 
           <button type="submit" className="search-submit">
-            Tìm kiếm
+            <span>Tìm kiếm</span>
+            {query && <span className="search-submit-count">{activeList.length} kết quả</span>}
           </button>
         </form>
 
@@ -703,29 +724,18 @@ export default function App() {
         </section>
       )}
 
-      <footer className="app-footer">
-        <span className="footer-source">
-          <span className="live-dot on" aria-hidden />
-          Nguồn dữ liệu:{' '}
-          <button type="button" className="link-button" onClick={() => void openSource()}>
-            Google Sheet ASC-CONFIG
-          </button>
-          <span
-            className="footer-sync"
-            title={`Tự kiểm tra mỗi ${POLL_INTERVAL_MS / 1000} giây · lần kiểm tra gần nhất ${formatClock(lastCheckedAt)}`}
-          >
-            · Cập nhật lần cuối: {formatFull(lastChangedAt)}
-          </span>
-        </span>
-        <span>
-          {configRecords.length} config · {noteRecords.length} lưu ý · v2.1.0
-        </span>
+      <footer className="app-footer" title={`Tự kiểm tra mỗi ${POLL_INTERVAL_MS / 1000} giây · lần kiểm tra gần nhất ${formatClock(lastCheckedAt)}`}>
+        <span className="live-dot on" aria-hidden />
+        <button type="button" className="link-button footer-link" onClick={() => void openSource()}>Google Sheet</button>
+        <span className="footer-sync">· Cập nhật lần cuối: {formatFull(lastChangedAt)}</span>
+        <span className="footer-stats">· {configRecords.length} config · {noteRecords.length} lưu ý</span>
+        <span className="footer-version">· v2.2.0</span>
       </footer>
 
       <ScrollTopButton containerRef={resultsRef} />
 
       {selected && <DetailModal record={selected} onClose={() => setSelected(null)} />}
-      {statsOpen && <StatsModal onClose={() => setStatsOpen(false)} />}
+      {statsOpen && <StatsModal records={[...configRecords, ...noteRecords]} onClose={() => setStatsOpen(false)} />}
     </main>
   );
 }
