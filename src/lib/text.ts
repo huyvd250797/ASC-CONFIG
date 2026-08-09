@@ -179,3 +179,99 @@ export function highlightParts(value: string, tokens: string[]): HighlightPart[]
   if (buffer) parts.push({ text: buffer, hit: currentHit });
   return parts;
 }
+
+/* ------------------------------------------------------------------ *
+ * Tìm nguyên cụm
+ *
+ * Khác với chế độ mặc định (mỗi từ khớp ở đâu cũng được), chế độ này coi cả ô nhập
+ * là MỘT cụm liền: "tuyen sinh" chỉ khớp bản ghi có đúng cụm "tuyển sinh", còn bản ghi
+ * chỉ có "tuyển" hoặc chỉ có "sinh" thì bị loại.
+ * ------------------------------------------------------------------ */
+
+/**
+ * Ngưỡng sai lệch cho phép trên cả cụm.
+ *
+ * Cụm ngắn KHÔNG được phép sai: tiếng Việt có quá nhiều từ chỉ khác nhau một ký tự, chỉ cần
+ * nới 1 đơn vị là "sinh tuyen" khớp nhầm "hinh tuyen". Cụm càng dài thì khả năng trùng nhầm
+ * càng thấp nên mới nới dần.
+ */
+function phraseTolerance(phrase: string) {
+  if (phrase.length <= 12) return 0;
+  if (phrase.length <= 20) return 1;
+  return 2;
+}
+
+/**
+ * Khoảng cách nhỏ nhất giữa `pattern` và MỘT ĐOẠN BẤT KỲ của `text` (thuật toán Sellers).
+ *
+ * Khác Levenshtein thường ở chỗ ô đầu mỗi cột được đặt bằng 0, nghĩa là đoạn khớp được phép
+ * bắt đầu ở giữa `text`. Ở đây chỉ cho phép bắt đầu tại ĐẦU MỘT TỪ, để cụm tìm kiếm không
+ * khớp vào khúc giữa của một từ khác. Chi phí O(n×m) với hai hàng bộ nhớ.
+ */
+function bestSubstringDistance(pattern: string, text: string, max: number) {
+  const m = pattern.length;
+  if (!m) return 0;
+  if (!text) return m;
+
+  const BLOCKED = m + max + 5;
+  let previous = new Array<number>(m + 1);
+  let current = new Array<number>(m + 1);
+  for (let i = 0; i <= m; i += 1) previous[i] = i;
+
+  let best = m;
+  for (let j = 1; j <= text.length; j += 1) {
+    // Chỉ mở điểm bắt đầu mới khi vị trí j là đầu một từ.
+    current[0] = text[j - 1] === ' ' ? 0 : BLOCKED;
+    const char = text[j - 1];
+    for (let i = 1; i <= m; i += 1) {
+      const cost = pattern[i - 1] === char ? 0 : 1;
+      current[i] = Math.min(current[i - 1] + 1, previous[i] + 1, previous[i - 1] + cost);
+    }
+    if (current[m] < best) best = current[m];
+    if (best === 0) return 0;
+    const swap = previous;
+    previous = current;
+    current = swap;
+  }
+  return Math.min(best, max + 1);
+}
+
+/** Chuẩn hóa ô nhập thành một cụm để so khớp. */
+export function toPhrase(query: string) {
+  return normalizeText(query);
+}
+
+/**
+ * Chấm điểm một cụm với nhiều trường có trọng số.
+ * Trả về 0 nếu không trường nào chứa cụm đó (kể cả ở mức gần đúng).
+ */
+export function scorePhrase(phrase: string, fields: FieldMatch[]) {
+  if (!phrase) return 1;
+
+  const tolerance = phraseTolerance(phrase);
+  const tight = phrase.replace(/\s+/g, '');
+  let best = 0;
+
+  for (const field of fields) {
+    const text = field.text;
+    if (!text) continue;
+
+    let score = 0;
+    const position = text.indexOf(phrase);
+    if (position === 0) score = 160;
+    else if (position > 0) score = text[position - 1] === ' ' ? 140 : 120;
+    else {
+      // Bỏ khoảng trắng hai bên để "tuyensinh" khớp "tuyển sinh" và ngược lại,
+      // đồng thời bỏ qua khác biệt về số khoảng trắng giữa các từ.
+      const tightText = text.replace(/\s+/g, '');
+      if (tightText.includes(tight)) score = 100;
+      else if (tolerance > 0) {
+        if (bestSubstringDistance(phrase, text, tolerance) <= tolerance) score = 70;
+        else if (bestSubstringDistance(tight, tightText, tolerance) <= tolerance) score = 60;
+      }
+    }
+
+    if (score > 0) best = Math.max(best, score * field.weight);
+  }
+  return best;
+}

@@ -573,6 +573,34 @@ mark {
   background: rgba(var(--fill-rgb), 0.07);
 }
 
+/* Công tắc "Nguyên cụm" nằm ngay trong ô tìm kiếm */
+.phrase-toggle {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  border-radius: 9px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: 0.14s;
+}
+
+.phrase-toggle:hover {
+  color: var(--text);
+  border-color: rgba(var(--accent-rgb), 0.45);
+}
+
+.phrase-toggle.active {
+  color: var(--accent);
+  border-color: rgba(var(--accent-rgb), 0.6);
+  background: rgba(var(--accent-rgb), 0.14);
+}
+
 .search-submit {
   flex: none;
   padding: 8px 18px;
@@ -1703,6 +1731,23 @@ button.ma-config.copyable:active {
   .search-box {
     flex: 1 1 100%;
     min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  /* Màn hình hẹp: ô nhập chiếm trọn hàng trên, hai nút xuống hàng dưới */
+  .search-box input {
+    flex: 1 1 100%;
+    order: -1;
+    padding: 8px 0;
+  }
+
+  .phrase-toggle {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .search-submit {
+    flex: 1;
   }
 
   .filter-row {
