@@ -146,10 +146,12 @@ export default function App() {
   const [lastChangedAt, setLastChangedAt] = useState<Date | null>(null);
   const [statsOpen, setStatsOpen] = useState(false);
   const [mobileCompactHeader, setMobileCompactHeader] = useState(false);
+  const [compactSearchOpen, setCompactSearchOpen] = useState(false);
   const notify = useToast();
   const { theme, toggle: toggleTheme } = useTheme();
   const requirePin = usePinGate();
   const resultsRef = useRef<HTMLElement>(null);
+  const compactSearchInputRef = useRef<HTMLInputElement>(null);
 
   const [queryInput, setQueryInput] = useState('');
   const [query, setQuery] = useState('');
@@ -257,12 +259,22 @@ export default function App() {
 
   useEffect(() => {
     const media = window.matchMedia('(max-width: 960px)');
-    const update = () => setMobileCompactHeader(media.matches && window.scrollY > 72);
+    const update = () => {
+      const compact = media.matches && window.scrollY > 72;
+      setMobileCompactHeader(compact);
+      if (!compact) setCompactSearchOpen(false);
+    };
     update();
     window.addEventListener('scroll', update, { passive: true });
     media.addEventListener('change', update);
     return () => { window.removeEventListener('scroll', update); media.removeEventListener('change', update); };
   }, []);
+
+  useEffect(() => {
+    if (!compactSearchOpen) return;
+    const frame = window.requestAnimationFrame(() => compactSearchInputRef.current?.focus());
+    return () => window.cancelAnimationFrame(frame);
+  }, [compactSearchOpen]);
 
   useEffect(() => {
     const blockManualCopy = (event: ClipboardEvent) => {
@@ -520,7 +532,7 @@ export default function App() {
         >
           <span className="brand-mark">ASC</span>
           <span className="brand-text">
-            <strong>ASC-CONFIG</strong>
+            <strong>ASC-CONFIG<span className="compact-version"> V2.2.1</span></strong>
             <span>Tra cứu Config &amp; Lưu ý vận hành — dữ liệu trực tiếp từ Google Sheet</span>
           </span>
         </button>
@@ -543,6 +555,19 @@ export default function App() {
             );
           })}
         </div>
+
+        {mobileCompactHeader && (
+          <button
+            type="button"
+            className={`compact-search-toggle ${compactSearchOpen ? 'active' : ''} ${query ? 'has-query' : ''}`}
+            onClick={() => setCompactSearchOpen((value) => !value)}
+            title={compactSearchOpen ? 'Đóng tìm kiếm' : 'Tìm kiếm'}
+            aria-label={compactSearchOpen ? 'Đóng tìm kiếm' : 'Mở tìm kiếm'}
+            aria-expanded={compactSearchOpen}
+          >
+            {compactSearchOpen ? <X size={17} /> : <Search size={17} />}
+          </button>
+        )}
 
         <div className="topbar-actions">
           <button
@@ -572,6 +597,46 @@ export default function App() {
             {refreshing ? <Loader2 size={16} className="spin" /> : <RefreshCw size={16} />}
           </button>
         </div>
+
+        {mobileCompactHeader && compactSearchOpen && (
+          <form
+            className="compact-mobile-search"
+            role="search"
+            onSubmit={(event) => {
+              submitSearch(event);
+              setCompactSearchOpen(false);
+            }}
+          >
+            <Search size={17} aria-hidden />
+            <input
+              ref={compactSearchInputRef}
+              value={queryInput}
+              onChange={(event) => {
+                setQueryInput(event.target.value);
+                if (!event.target.value.trim()) setQuery('');
+              }}
+              placeholder="Tìm mã config, module, vấn đề..."
+              aria-label="Từ khóa tìm kiếm trên mobile"
+            />
+            {queryInput && (
+              <button
+                type="button"
+                className="compact-search-clear"
+                onClick={() => {
+                  setQueryInput('');
+                  setQuery('');
+                  compactSearchInputRef.current?.focus();
+                }}
+                aria-label="Xóa từ khóa"
+              >
+                <X size={15} />
+              </button>
+            )}
+            <button type="submit" className="compact-search-submit" aria-label="Tìm kiếm">
+              <Search size={16} />
+            </button>
+          </form>
+        )}
       </header>
 
       <section className="control-bar">
