@@ -48,6 +48,7 @@ import type { SortState } from './components/common';
 
 /** Chu kỳ kiểm tra Google Sheet (ms). */
 const POLL_INTERVAL_MS = 15000;
+const APP_VERSION = '2.2.3';
 /** Màn hình hẹp thì lưới nhiều cột rất khó đọc, nên mặc định dùng dạng thẻ. */
 function isNarrowScreen() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 960px)').matches;
@@ -141,6 +142,7 @@ export default function App() {
   const [data, setData] = useState<AppData>(emptyData);
   const [lookup, setLookup] = useState<LookupPayload>(emptyLookup);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [startupSplashVisible, setStartupSplashVisible] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null);
   const [lastChangedAt, setLastChangedAt] = useState<Date | null>(null);
@@ -156,6 +158,9 @@ export default function App() {
   // Khi keyboard biến mất, Safari có thể phát sinh một scroll/resize tạm thời làm scrollY
   // tụt xuống dưới ngưỡng 72px và khiến header mở rộng/biến khỏi vị trí người dùng đang xem.
   const compactHeaderPinUntilRef = useRef(0);
+  // Khi header đã co trên mobile, giữ trạng thái compact ổn định. Chỉ mở lại header đầy đủ
+  // khi người dùng thực sự quay về sát đầu trang và không còn tìm kiếm đang áp dụng.
+  const compactHeaderLatchedRef = useRef(false);
 
   const [queryInput, setQueryInput] = useState('');
   const [query, setQuery] = useState('');
@@ -253,6 +258,11 @@ export default function App() {
   }, [notify]);
 
   useEffect(() => {
+    const timer = window.setTimeout(() => setStartupSplashVisible(false), 1500);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     void refresh(false);
   }, [refresh]);
 
@@ -264,16 +274,43 @@ export default function App() {
   useEffect(() => {
     const media = window.matchMedia('(max-width: 960px)');
     const update = () => {
+      if (!media.matches) {
+        compactHeaderLatchedRef.current = false;
+        setMobileCompactHeader(false);
+        setCompactSearchOpen(false);
+        return;
+      }
+
+      const y = window.scrollY;
       const compactPinned = Date.now() < compactHeaderPinUntilRef.current;
-      const compact = media.matches && (window.scrollY > 72 || compactPinned);
+
+      if (y > 72) compactHeaderLatchedRef.current = true;
+
+      // Chỉ nhả compact khi người dùng đã về sát đầu trang VÀ không còn search.
+      // Khi kết quả tìm kiếm làm chiều cao trang thay đổi/scrollY bị Safari điều chỉnh,
+      // query hoặc latch vẫn giữ header một dòng, vì vậy header không thể biến mất.
+      if (y <= 4 && !query && !compactSearchOpen && !compactPinned) {
+        compactHeaderLatchedRef.current = false;
+      }
+
+      const compact =
+        compactHeaderLatchedRef.current ||
+        compactPinned ||
+        compactSearchOpen ||
+        Boolean(query);
+
       setMobileCompactHeader(compact);
       if (!compact) setCompactSearchOpen(false);
     };
+
     update();
     window.addEventListener('scroll', update, { passive: true });
     media.addEventListener('change', update);
-    return () => { window.removeEventListener('scroll', update); media.removeEventListener('change', update); };
-  }, []);
+    return () => {
+      window.removeEventListener('scroll', update);
+      media.removeEventListener('change', update);
+    };
+  }, [query, compactSearchOpen]);
 
   useEffect(() => {
     if (!compactSearchOpen) return;
@@ -432,7 +469,8 @@ export default function App() {
     event.preventDefault();
     const nextQuery = queryInput.trim();
 
-    compactHeaderPinUntilRef.current = Date.now() + 900;
+    compactHeaderLatchedRef.current = true;
+    compactHeaderPinUntilRef.current = Date.now() + 1200;
     compactSearchInputRef.current?.blur();
     setQuery(nextQuery);
     setCompactSearchOpen(false);
@@ -473,6 +511,10 @@ export default function App() {
     setNoteSort(DEFAULTS.sort);
     setSelected(null);
     setStatsOpen(false);
+    setCompactSearchOpen(false);
+    compactHeaderLatchedRef.current = false;
+    compactHeaderPinUntilRef.current = 0;
+    setMobileCompactHeader(false);
     void refresh(false);
 
     // Đưa thanh cuộn của bảng về đầu; chờ React vẽ lại xong mới cuộn.
@@ -554,7 +596,21 @@ export default function App() {
   ];
 
   return (
-    <main className="app-shell">
+    <>
+      {startupSplashVisible && (
+        <div className="startup-splash" role="status" aria-live="polite" aria-label="Đang khởi động ASC-CONFIG">
+          <div className="startup-splash-card">
+            <div className="startup-splash-logo" aria-hidden>ASC</div>
+            <h1>ASC-CONFIG</h1>
+            <p>Tra cứu Config &amp; Lưu ý vận hành</p>
+            <div className="startup-progress" aria-hidden>
+              <span />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <main className={`app-shell ${mobileCompactHeader ? 'mobile-header-pinned' : ''}`}>
       <header className={`topbar ${mobileCompactHeader ? 'mobile-compact' : ''}`}>
         <button
           type="button"
@@ -564,7 +620,7 @@ export default function App() {
         >
           <span className="brand-mark">ASC</span>
           <span className="brand-text">
-            <strong>ASC-CONFIG<span className="compact-version"> V2.2.2</span></strong>
+            <strong>ASC-CONFIG<span className="compact-version"> V{APP_VERSION}</span></strong>
             <span>Tra cứu Config &amp; Lưu ý vận hành — dữ liệu trực tiếp từ Google Sheet</span>
           </span>
         </button>
@@ -600,7 +656,8 @@ export default function App() {
                 return;
               }
               // Giữ header compact khi iOS mở bàn phím và thay đổi visual viewport.
-              compactHeaderPinUntilRef.current = Date.now() + 1600;
+              compactHeaderLatchedRef.current = true;
+              compactHeaderPinUntilRef.current = Date.now() + 1800;
               setMobileCompactHeader(true);
               setCompactSearchOpen(true);
             }}
@@ -839,7 +896,7 @@ export default function App() {
         <div className="footer-right">
           <span>{configRecords.length} config</span>
           <span>· {noteRecords.length} lưu ý</span>
-          <span>· v2.2.2</span>
+          <span>· v{APP_VERSION}</span>
         </div>
       </footer>
 
@@ -847,7 +904,8 @@ export default function App() {
 
       {selected && <DetailModal record={selected} onClose={() => setSelected(null)} />}
       {statsOpen && <StatsModal records={[...configRecords, ...noteRecords]} onClose={() => setStatsOpen(false)} />}
-    </main>
+      </main>
+    </>
   );
 }
 

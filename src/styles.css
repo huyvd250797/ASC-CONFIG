@@ -280,6 +280,108 @@ mark {
   }
 }
 
+
+/* ---------- Splash khởi động ---------- */
+
+.startup-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--body-grad);
+  color: var(--text);
+  animation: startup-splash-out 1.5s ease both;
+}
+
+.startup-splash-card {
+  width: min(420px, calc(100vw - 40px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: startup-card-in 0.5s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.startup-splash-logo {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin-bottom: 18px;
+  border-radius: 17px;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: .05em;
+  color: var(--on-accent);
+  background: linear-gradient(135deg, var(--accent-2), var(--green));
+  box-shadow: 0 18px 46px rgba(var(--accent-rgb), .34);
+  animation: startup-logo-pulse 1.15s ease-in-out infinite;
+}
+
+.startup-splash h1 {
+  margin: 0;
+  font-size: clamp(28px, 7vw, 42px);
+  line-height: 1;
+  letter-spacing: -.035em;
+}
+
+.startup-splash p {
+  margin: 11px 0 22px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.startup-progress {
+  position: relative;
+  width: min(280px, 72vw);
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(var(--neutral-rgb), .16);
+  box-shadow: inset 0 0 0 1px rgba(var(--neutral-rgb), .08);
+}
+
+.startup-progress > span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--green));
+  transform-origin: left center;
+  animation: startup-progress-fill 1.35s cubic-bezier(.2,.75,.25,1) both;
+}
+
+@keyframes startup-card-in {
+  from { opacity: 0; transform: translateY(12px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes startup-logo-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.055); }
+}
+
+@keyframes startup-progress-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes startup-splash-out {
+  0%, 82% { opacity: 1; visibility: visible; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .startup-splash,
+  .startup-splash-card,
+  .startup-splash-logo,
+  .startup-progress > span {
+    animation-timing-function: linear;
+  }
+}
+
 /* Bố cục cố định: chỉ vùng dữ liệu được cuộn, phần điều khiển luôn đứng yên. */
 .app-shell {
   width: min(1680px, calc(100% - 24px));
@@ -1704,7 +1806,25 @@ button.ma-config.copyable:active {
 
   /* Thanh tiêu đề: thương hiệu một hàng, tab và trạng thái xuống hàng riêng */
   .topbar { position:sticky; top:0; z-index:42; gap:10px; padding:10px 12px; transition:padding .18s ease,gap .18s ease,border-radius .18s ease; }
-  .topbar.mobile-compact { flex-wrap:nowrap; gap:6px; padding:5px 8px; border-radius:0 0 12px 12px; background:var(--modal-bg); box-shadow:0 8px 22px rgba(var(--shadow-rgb),.22); }
+  /* Sau khi đã co còn một dòng, dùng fixed thay vì sticky để Safari/iOS không thể
+     đẩy header ra khỏi viewport khi keyboard, search hoặc chiều cao kết quả thay đổi. */
+  .topbar.mobile-compact {
+    position:fixed;
+    top:env(safe-area-inset-top);
+    left:10px;
+    right:10px;
+    z-index:90;
+    width:auto;
+    flex-wrap:nowrap;
+    gap:6px;
+    padding:5px 8px;
+    border-radius:0 0 12px 12px;
+    background:var(--modal-bg);
+    box-shadow:0 8px 22px rgba(var(--shadow-rgb),.22);
+  }
+  .app-shell.mobile-header-pinned {
+    padding-top:58px;
+  }
   .topbar.mobile-compact .brand { flex:1 1 auto; width:auto; min-width:0; margin:0; padding:5px 7px; }
   .topbar.mobile-compact .brand-mark, .topbar.mobile-compact .brand-text > span, .topbar.mobile-compact .kind-tab > span, .topbar.mobile-compact .kind-tab > b, .topbar.mobile-compact .topbar-actions { display:none; }
   .topbar.mobile-compact .brand-text strong { font-size:14px; white-space:nowrap; }
