@@ -230,7 +230,7 @@ Mỗi lần mở chi tiết một bản ghi được tính là **một lượt x
   (badge loại và nhãn nằm ở hai cột riêng nên mã config dài bao nhiêu cũng xuống dòng gọn
   trong cột của nó, không đẩy layout)
 - Tổng số bản ghi đã tra cứu, tổng lượt xem, tổng lượt chép
-- Xuất CSV hoặc xóa toàn bộ số liệu
+- Xuất CSV, xóa từng bản ghi (có PIN) hoặc xóa toàn bộ số liệu
 
 ### Thống kê riêng máy hay dùng chung cả đội
 
@@ -248,6 +248,7 @@ Vài điểm về thiết kế:
   `sendBeacon` khi người dùng đóng tab. Không gửi từng cú click nên không làm chậm thao tác và
   tiết kiệm hạn mức Apps Script.
 - Gửi hỏng thì hàng đợi được trả lại, không mất số đếm và cũng không hiện lỗi làm phiền.
+- Xóa từng bản ghi ở phạm vi **Toàn hệ thống** dùng `?action=delete&key=...`, vì vậy sau khi cập nhật source cần deploy lại `apps-script/Code.gs`.
 - Phía Apps Script bắt buộc dùng `LockService` bao quanh đoạn đọc-cộng-ghi, nếu không thì nhiều
   người bấm cùng lúc sẽ ghi đè lẫn nhau và mất số đếm.
 - App vẫn ghi song song vào `localStorage`, nên mất mạng vẫn dùng được và số liệu hiện lên

@@ -14,6 +14,8 @@ type PendingEvent = {
   key: string;
   kind: RecordKind;
   label: string;
+  phanHe?: string;
+  module?: string;
   views: number;
   copies: number;
 };
@@ -30,6 +32,8 @@ function merge(event: PendingEvent) {
     current.views += event.views;
     current.copies += event.copies;
     current.label = event.label || current.label;
+    current.phanHe = event.phanHe || current.phanHe;
+    current.module = event.module || current.module;
   } else {
     pending.set(event.key, { ...event });
   }
@@ -37,7 +41,7 @@ function merge(event: PendingEvent) {
 
 /** Xếp một lượt xem / lượt chép vào hàng đợi gửi lên server. */
 export function queueUsage(
-  entry: { key: string; kind: RecordKind; label: string },
+  entry: { key: string; kind: RecordKind; label: string; phanHe?: string; module?: string },
   field: 'views' | 'copies',
 ) {
   if (!remoteStatsEnabled()) return;
@@ -45,6 +49,8 @@ export function queueUsage(
     key: entry.key,
     kind: entry.kind,
     label: entry.label,
+    phanHe: entry.phanHe,
+    module: entry.module,
     views: field === 'views' ? 1 : 0,
     copies: field === 'copies' ? 1 : 0,
   });
@@ -144,6 +150,13 @@ export async function fetchRemoteUsage() {
   // Đẩy nốt hàng đợi trước để số liệu đọc về là mới nhất.
   await flushUsage();
   return jsonp({ action: 'list' });
+}
+
+/** Xóa một bản ghi thống kê dùng chung trên server. */
+export async function deleteRemoteUsage(key: string) {
+  if (!remoteStatsEnabled()) return [];
+  pending.delete(key);
+  return jsonp({ action: 'delete', token: STATS_TOKEN, key });
 }
 
 /** Xóa toàn bộ số liệu dùng chung trên server. */
