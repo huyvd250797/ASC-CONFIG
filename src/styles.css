@@ -1764,8 +1764,12 @@ button.ma-config.copyable:active {
     outline:0;
     background:transparent;
     color:var(--text);
-    font:inherit;
-    font-size:13px;
+    font-family:inherit;
+    font-weight:inherit;
+    line-height:1.25;
+    /* iOS Safari tự zoom khi focus input nhỏ hơn 16px. */
+    font-size:16px;
+    -webkit-text-size-adjust:100%;
   }
   .topbar.mobile-compact .compact-mobile-search input::placeholder { color:var(--dim); }
   .compact-search-clear,

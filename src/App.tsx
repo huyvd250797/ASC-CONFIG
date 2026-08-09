@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import {
   AlertTriangle,
   BookOpenText,
@@ -152,6 +152,10 @@ export default function App() {
   const requirePin = usePinGate();
   const resultsRef = useRef<HTMLElement>(null);
   const compactSearchInputRef = useRef<HTMLInputElement>(null);
+  // Giữ header compact trong lúc Safari/iOS đóng bàn phím sau khi submit.
+  // Khi keyboard biến mất, Safari có thể phát sinh một scroll/resize tạm thời làm scrollY
+  // tụt xuống dưới ngưỡng 72px và khiến header mở rộng/biến khỏi vị trí người dùng đang xem.
+  const compactHeaderPinUntilRef = useRef(0);
 
   const [queryInput, setQueryInput] = useState('');
   const [query, setQuery] = useState('');
@@ -260,7 +264,8 @@ export default function App() {
   useEffect(() => {
     const media = window.matchMedia('(max-width: 960px)');
     const update = () => {
-      const compact = media.matches && window.scrollY > 72;
+      const compactPinned = Date.now() < compactHeaderPinUntilRef.current;
+      const compact = media.matches && (window.scrollY > 72 || compactPinned);
       setMobileCompactHeader(compact);
       if (!compact) setCompactSearchOpen(false);
     };
@@ -417,6 +422,33 @@ export default function App() {
     setQuery(queryInput.trim());
   };
 
+  /**
+   * Tìm kiếm từ header compact trên mobile.
+   * Blur input trước khi đóng để iOS thu bàn phím/viewport ổn định, sau đó giữ header
+   * compact trong khoảng chuyển tiếp ngắn. Textbox luôn đóng sau submit; chấm xanh trên
+   * icon tìm kiếm được điều khiển bởi `query` nên vẫn còn khi đang lọc dữ liệu.
+   */
+  const submitCompactSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const nextQuery = queryInput.trim();
+
+    compactHeaderPinUntilRef.current = Date.now() + 900;
+    compactSearchInputRef.current?.blur();
+    setQuery(nextQuery);
+    setCompactSearchOpen(false);
+    setMobileCompactHeader(true);
+
+    // Safari có thể điều chỉnh scroll khi bàn phím đóng. Nếu vị trí tạm rơi dưới ngưỡng
+    // compact, đưa nhẹ về đúng ngưỡng để header vẫn là một dòng như trước khi tìm kiếm.
+    window.setTimeout(() => {
+      if (!window.matchMedia('(max-width: 960px)').matches) return;
+      if (window.scrollY <= 72) {
+        window.scrollTo({ top: 73, left: 0, behavior: 'auto' });
+      }
+      setMobileCompactHeader(true);
+    }, 120);
+  };
+
   const clearFilters = () => {
     notify({ kind: 'info', title: 'Đã bỏ toàn bộ bộ lọc', duration: 2000 });
     setQueryInput('');
@@ -532,7 +564,7 @@ export default function App() {
         >
           <span className="brand-mark">ASC</span>
           <span className="brand-text">
-            <strong>ASC-CONFIG<span className="compact-version"> V2.2.1</span></strong>
+            <strong>ASC-CONFIG<span className="compact-version"> V2.2.2</span></strong>
             <span>Tra cứu Config &amp; Lưu ý vận hành — dữ liệu trực tiếp từ Google Sheet</span>
           </span>
         </button>
@@ -560,7 +592,18 @@ export default function App() {
           <button
             type="button"
             className={`compact-search-toggle ${compactSearchOpen ? 'active' : ''} ${query ? 'has-query' : ''}`}
-            onClick={() => setCompactSearchOpen((value) => !value)}
+            onClick={() => {
+              if (compactSearchOpen) {
+                compactHeaderPinUntilRef.current = 0;
+                compactSearchInputRef.current?.blur();
+                setCompactSearchOpen(false);
+                return;
+              }
+              // Giữ header compact khi iOS mở bàn phím và thay đổi visual viewport.
+              compactHeaderPinUntilRef.current = Date.now() + 1600;
+              setMobileCompactHeader(true);
+              setCompactSearchOpen(true);
+            }}
             title={compactSearchOpen ? 'Đóng tìm kiếm' : 'Tìm kiếm'}
             aria-label={compactSearchOpen ? 'Đóng tìm kiếm' : 'Mở tìm kiếm'}
             aria-expanded={compactSearchOpen}
@@ -602,10 +645,7 @@ export default function App() {
           <form
             className="compact-mobile-search"
             role="search"
-            onSubmit={(event) => {
-              submitSearch(event);
-              setCompactSearchOpen(false);
-            }}
+            onSubmit={submitCompactSearch}
           >
             <Search size={17} aria-hidden />
             <input
@@ -799,7 +839,7 @@ export default function App() {
         <div className="footer-right">
           <span>{configRecords.length} config</span>
           <span>· {noteRecords.length} lưu ý</span>
-          <span>· v2.2.1</span>
+          <span>· v2.2.2</span>
         </div>
       </footer>
 
