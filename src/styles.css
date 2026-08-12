@@ -2094,6 +2094,65 @@ button.ma-config.copyable:active {
   font-size: 18px;
 }
 
+.stats-toolbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px 0;
+}
+
+.stats-search {
+  flex: 1;
+  min-width: 0;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(11, 22, 38, .78);
+  color: var(--muted);
+}
+
+.stats-search:focus-within {
+  border-color: rgba(var(--accent-rgb), .66);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), .15);
+}
+
+.stats-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+}
+
+.stats-search input::placeholder {
+  color: var(--dim);
+}
+
+.stats-search button {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.stats-search button:hover,
+.stats-search button:focus-visible {
+  outline: none;
+  color: var(--text);
+  background: var(--soft);
+}
+
 .stats-wrap {
   flex: 1; min-height: 0; margin: 14px 18px 0; overscroll-behavior: contain; touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch;
 }
@@ -2244,6 +2303,15 @@ button.ma-config.copyable:active {
 }
 
 @media (max-width: 960px) {
+  .stats-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .stats-toolbar > .copy-button {
+    width: 100%;
+    justify-content: center;
+  }
+
   .toast-stack {
     top: 10px;
     left: 10px;

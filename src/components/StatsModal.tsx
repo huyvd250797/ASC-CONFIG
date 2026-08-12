@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, ArrowDown, ArrowUp, Copy, Download, Eye, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AlertTriangle, ArrowDown, ArrowUp, Copy, Download, Eye, Loader2, RotateCcw, Search, Trash2, X } from 'lucide-react';
 import { deleteUsage, resetUsage, useUsage, type UsageEntry } from '../lib/stats';
-import { deleteRemoteUsage, fetchRemoteUsage, remoteStatsEnabled, resetRemoteUsage } from '../lib/remoteStats';
+import { deleteRemoteUsage, fetchRemoteUsage, getCachedRemoteUsage, remoteStatsEnabled, resetRemoteUsage, type RemoteUsageResult } from '../lib/remoteStats';
 import { useToast } from '../lib/toast';
 import { usePinGate } from '../lib/pin';
 import { toneFor, toneVars } from '../lib/colors';
@@ -32,6 +32,33 @@ function compareText(left = '', right = '') {
 
 type Scope = 'all' | 'mine';
 type Props = { records: AppRecord[]; onClose: () => void };
+const REMOTE_PAGE_LIMIT = 300;
+const SEARCH_DEBOUNCE_MS = 260;
+
+function blankRemoteResult(): RemoteUsageResult {
+  return { entries: [], totalRows: 0, totalViews: 0, totalCopies: 0, partial: false };
+}
+
+function normalizeSearch(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLocaleLowerCase('vi');
+}
+
+function matchesQuery(entry: UsageEntry, query: string) {
+  if (!query) return true;
+  return normalizeSearch([entry.key, entry.label, entry.phanHe, entry.module, entry.kind].join(' ')).includes(query);
+}
+
+function resultFromEntries(entries: UsageEntry[]): RemoteUsageResult {
+  const totals = entries.reduce(
+    (sum, entry) => ({ views: sum.views + entry.views, copies: sum.copies + entry.copies }),
+    { views: 0, copies: 0 },
+  );
+  return { entries, totalRows: entries.length, totalViews: totals.views, totalCopies: totals.copies, partial: false };
+}
 
 export function StatsModal({ records, onClose }: Props) {
   const localEntries = useUsage();
@@ -42,9 +69,12 @@ export function StatsModal({ records, onClose }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('copies');
   const [descending, setDescending] = useState(true);
   const [scope, setScope] = useState<Scope>(shared ? 'all' : 'mine');
-  const [remoteEntries, setRemoteEntries] = useState<UsageEntry[]>([]);
+  const [remoteResult, setRemoteResult] = useState<RemoteUsageResult>(() => getCachedRemoteUsage() || blankRemoteResult());
   const [loading, setLoading] = useState(false);
   const [remoteError, setRemoteError] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const loadSeq = useRef(0);
 
   useModalScrollLock();
 
@@ -58,20 +88,35 @@ export function StatsModal({ records, onClose }: Props) {
 
   const loadRemote = useCallback(async () => {
     if (!shared) return;
+    const seq = loadSeq.current + 1;
+    loadSeq.current = seq;
     setLoading(true);
     setRemoteError('');
     try {
-      setRemoteEntries(await fetchRemoteUsage());
+      const result = await fetchRemoteUsage({
+        query: searchQuery,
+        sortKey,
+        descending,
+        limit: REMOTE_PAGE_LIMIT,
+      });
+      if (seq === loadSeq.current) setRemoteResult(result);
     } catch (error) {
-      setRemoteError(error instanceof Error ? error.message : 'Không đọc được số liệu dùng chung.');
+      if (seq === loadSeq.current) setRemoteError(error instanceof Error ? error.message : 'Không đọc được số liệu dùng chung.');
     } finally {
-      setLoading(false);
+      if (seq === loadSeq.current) setLoading(false);
     }
-  }, [shared]);
+  }, [descending, searchQuery, shared, sortKey]);
 
-  useEffect(() => { void loadRemote(); }, [loadRemote]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setSearchQuery(searchInput.trim()), SEARCH_DEBOUNCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [searchInput]);
 
-  const rawEntries = scope === 'all' && shared ? remoteEntries : localEntries;
+  useEffect(() => {
+    if (scope === 'all') void loadRemote();
+  }, [loadRemote, scope]);
+
+  const rawEntries = scope === 'all' && shared ? remoteResult.entries : localEntries;
   const entries = useMemo(
     () => rawEntries.map((entry) => {
       const meta = recordMeta.get(entry.key);
@@ -86,20 +131,31 @@ export function StatsModal({ records, onClose }: Props) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [onClose]);
 
-  const totals = useMemo(() => entries.reduce(
+  const filteredEntries = useMemo(() => {
+    const query = normalizeSearch(searchQuery);
+    return entries.filter((entry) => matchesQuery(entry, query));
+  }, [entries, searchQuery]);
+
+  const localTotals = useMemo(() => filteredEntries.reduce(
     (sum, entry) => ({ views: sum.views + entry.views, copies: sum.copies + entry.copies }),
     { views: 0, copies: 0 },
-  ), [entries]);
+  ), [filteredEntries]);
+
+  const isRemoteScope = scope === 'all' && shared;
+  const totals = isRemoteScope
+    ? { views: remoteResult.totalViews, copies: remoteResult.totalCopies }
+    : localTotals;
+  const summaryCount = isRemoteScope ? remoteResult.totalRows : filteredEntries.length;
 
   const sorted = useMemo(() => {
     const direction = descending ? -1 : 1;
-    return [...entries].sort((a, b) => {
+    return [...filteredEntries].sort((a, b) => {
       if (sortKey === 'label' || sortKey === 'phanHe' || sortKey === 'module') {
         return compareText(a[sortKey], b[sortKey]) * direction || b.copies - a.copies;
       }
       return ((a[sortKey] as number) - (b[sortKey] as number)) * direction || b.copies - a.copies;
     });
-  }, [entries, sortKey, descending]);
+  }, [descending, filteredEntries, sortKey]);
 
   const changeSort = (key: SortKey) => {
     if (key === sortKey) setDescending((value) => !value);
@@ -135,7 +191,7 @@ export function StatsModal({ records, onClose }: Props) {
     if (scope === 'all' && shared) {
       try {
         const next = await deleteRemoteUsage(entry.key);
-        setRemoteEntries(next);
+        setRemoteResult(resultFromEntries(next));
         notify({ kind: 'info', title: 'Đã xóa bản ghi khỏi thống kê toàn hệ thống', detail: entry.label });
       } catch (error) {
         notify({
@@ -157,7 +213,7 @@ export function StatsModal({ records, onClose }: Props) {
     if (!allowed) return;
     if (scope === 'all' && shared) {
       try {
-        await resetRemoteUsage(); setRemoteEntries([]);
+        await resetRemoteUsage(); setRemoteResult(blankRemoteResult());
         notify({ kind: 'info', title: 'Đã xóa số liệu dùng chung của toàn hệ thống' });
       } catch (error) {
         notify({ kind: 'error', title: 'Không xóa được số liệu dùng chung', detail: error instanceof Error ? error.message : undefined });
@@ -168,7 +224,9 @@ export function StatsModal({ records, onClose }: Props) {
     notify({ kind: 'info', title: 'Đã xóa số liệu thống kê trên máy này' });
   };
 
-  const showRemoteLoading = loading && scope === 'all';
+  const showRemoteLoading = loading && isRemoteScope && remoteResult.entries.length === 0;
+  const shownCount = sorted.length;
+  const countLabel = isRemoteScope && summaryCount > shownCount ? `${shownCount}/${summaryCount}` : String(summaryCount);
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -176,7 +234,7 @@ export function StatsModal({ records, onClose }: Props) {
         <header>
           <div className="detail-title">
             <h2>Thống kê sử dụng</h2>
-            <p className="detail-sub">{entries.length} bản ghi đã tra cứu · {totals.views} lượt xem · {totals.copies} lượt chép</p>
+            <p className="detail-sub">{countLabel} bản ghi đã tra cứu · {totals.views} lượt xem · {totals.copies} lượt chép</p>
             {shared ? (
               <div className="scope-switch" role="group" aria-label="Phạm vi thống kê">
                 <button type="button" className={scope === 'all' ? 'active' : ''} onClick={() => setScope('all')}>Toàn hệ thống</button>
@@ -185,11 +243,33 @@ export function StatsModal({ records, onClose }: Props) {
             ) : null}
           </div>
           <div className="detail-actions">
-            <button type="button" className="copy-button" onClick={() => void exportCsv()} disabled={!entries.length || showRemoteLoading}><Download size={14} />Xuất CSV</button>
-            <button type="button" className="copy-button danger" onClick={() => void clearAll()} disabled={!entries.length || showRemoteLoading}><RotateCcw size={14} />Xóa</button>
+            <button type="button" className="copy-button" onClick={() => void exportCsv()} disabled={!sorted.length || showRemoteLoading}><Download size={14} />Xuất CSV</button>
+            <button type="button" className="copy-button danger" onClick={() => void clearAll()} disabled={!summaryCount || showRemoteLoading}><RotateCcw size={14} />Xóa</button>
             <button className="close-button" onClick={onClose} aria-label="Đóng thống kê"><X size={19} /></button>
           </div>
         </header>
+
+        <div className="stats-toolbar">
+          <label className="stats-search">
+            <Search size={16} />
+            <input
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              placeholder="Tìm mã config, phân hệ, module..."
+            />
+            {searchInput && (
+              <button type="button" onClick={() => setSearchInput('')} aria-label="Xóa tìm kiếm">
+                <X size={15} />
+              </button>
+            )}
+          </label>
+          {isRemoteScope && (
+            <button type="button" className="copy-button" onClick={() => void loadRemote()} disabled={loading}>
+              {loading ? <Loader2 size={14} className="spin" /> : null}
+              {loading ? 'Đang tải' : 'Tải lại'}
+            </button>
+          )}
+        </div>
 
         {remoteError && scope === 'all' && !showRemoteLoading && (
           <div className="stats-error" role="alert"><AlertTriangle size={16} /><span>{remoteError}</span><button type="button" className="copy-button" onClick={() => void loadRemote()}>Thử lại</button></div>
@@ -197,7 +277,7 @@ export function StatsModal({ records, onClose }: Props) {
 
         {showRemoteLoading ? (
           <div className="stats-loading" role="status" aria-live="polite"><Loader2 className="spin" size={34} /><h3>Đang tải thống kê</h3><p>Đang lấy số liệu dùng chung từ hệ thống…</p></div>
-        ) : entries.length === 0 ? (
+        ) : sorted.length === 0 ? (
           <div className="empty-state stats-empty"><Eye size={28} /><h3>Chưa có số liệu</h3><p>Mở chi tiết một bản ghi hoặc bấm vào Mã Config để sao chép, số liệu sẽ được ghi nhận tại đây.</p></div>
         ) : (
           <div className="grid-wrap stats-wrap">
@@ -236,7 +316,7 @@ export function StatsModal({ records, onClose }: Props) {
           </div>
         )}
 
-        <footer className="stats-foot">{shared ? scope === 'all' ? 'Số liệu tổng hợp từ mọi người dùng, lưu ở sheet ThongKe qua Apps Script.' : 'Số liệu riêng của máy này, lưu ở trình duyệt.' : 'Số liệu lưu trên trình duyệt của máy này. Khai báo STATS_ENDPOINT trong src/config.ts để dùng chung cho cả đội.'}</footer>
+        <footer className="stats-foot">{shared ? scope === 'all' ? `Số liệu tổng hợp từ mọi người dùng, tải theo trang ${REMOTE_PAGE_LIMIT} dòng để mở nhanh và tìm kiếm nhẹ hơn.` : 'Số liệu riêng của máy này, lưu ở trình duyệt.' : 'Số liệu lưu trên trình duyệt của máy này. Khai báo STATS_ENDPOINT trong src/config.ts để dùng chung cho cả đội.'}</footer>
       </section>
     </div>
   );

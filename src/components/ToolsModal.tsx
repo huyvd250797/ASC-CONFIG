@@ -159,7 +159,7 @@ export function ToolsModal({ onClose }: { onClose: () => void }) {
   const showLoading = loading && tools.length === 0;
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop" onClick={() => { if (!draft) onClose(); }}>
       <section
         className="detail-modal tools-modal"
         onClick={(event) => event.stopPropagation()}
