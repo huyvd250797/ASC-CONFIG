@@ -240,9 +240,24 @@ function getToolsSheet() {
   var sheet = book.getSheetByName(TOOLS_SHEET);
   if (!sheet) {
     sheet = book.insertSheet(TOOLS_SHEET);
+    sheet.getRange(1, 1, 1, TOOLS_HEADERS.length).setValues([TOOLS_HEADERS]).setFontWeight('bold');
+    sheet.setFrozenRows(1);
+    return sheet;
   }
-  sheet.getRange(1, 1, 1, TOOLS_HEADERS.length).setValues([TOOLS_HEADERS]).setFontWeight('bold');
-  sheet.setFrozenRows(1);
+
+  // Không ghi lại header ở mọi lần đọc: thao tác ghi thừa làm Web App cold-start lâu hơn.
+  var currentHeaders = sheet.getRange(1, 1, 1, TOOLS_HEADERS.length).getDisplayValues()[0];
+  var needsHeaderUpdate = false;
+  for (var i = 0; i < TOOLS_HEADERS.length; i += 1) {
+    if (currentHeaders[i] !== TOOLS_HEADERS[i]) {
+      needsHeaderUpdate = true;
+      break;
+    }
+  }
+  if (needsHeaderUpdate) {
+    sheet.getRange(1, 1, 1, TOOLS_HEADERS.length).setValues([TOOLS_HEADERS]).setFontWeight('bold');
+  }
+  if (sheet.getFrozenRows() !== 1) sheet.setFrozenRows(1);
   return sheet;
 }
 
