@@ -51,7 +51,7 @@ import type { SortState } from './components/common';
 
 /** Chu kỳ kiểm tra Google Sheet (ms). */
 const POLL_INTERVAL_MS = 15000;
-const APP_VERSION = '2.3.1';
+const APP_VERSION = '2.3.2';
 /** Màn hình hẹp thì lưới nhiều cột rất khó đọc, nên mặc định dùng dạng thẻ. */
 function isNarrowScreen() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 960px)').matches;
