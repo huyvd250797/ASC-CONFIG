@@ -16,9 +16,15 @@ type JsonpWindow = Window & Record<string, ((response: unknown) => void) | undef
 
 let counter = 0;
 
+/**
+ * Apps Script có thể mất hơn 15 giây ở lần gọi đầu tiên sau một thời gian không hoạt động.
+ * Chừa đủ thời gian cho cold start và chuỗi chuyển hướng của Google để tránh timeout giả.
+ */
+export const DEFAULT_JSONP_TIMEOUT_MS = 35000;
+
 export function jsonp<T extends JsonpResponse>(
   params: Record<string, string>,
-  timeoutMs = 15000,
+  timeoutMs = DEFAULT_JSONP_TIMEOUT_MS,
 ): Promise<T> {
   return new Promise((resolve, reject) => {
     if (!STATS_ENDPOINT.trim()) {

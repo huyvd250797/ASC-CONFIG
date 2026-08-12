@@ -58,6 +58,7 @@ export function ToolsModal({ onClose }: { onClose: () => void }) {
   const [formError, setFormError] = useState('');
   const [busyId, setBusyId] = useState('');
   const nameRef = useRef<HTMLInputElement>(null);
+  const draftKey = draft ? draft.id || '__new__' : '';
 
   useModalScrollLock();
 
@@ -72,8 +73,10 @@ export function ToolsModal({ onClose }: { onClose: () => void }) {
   }, [draft, onClose]);
 
   useEffect(() => {
-    if (draft) nameRef.current?.focus();
-  }, [draft]);
+    if (!draftKey) return;
+    const frame = window.requestAnimationFrame(() => nameRef.current?.focus());
+    return () => window.cancelAnimationFrame(frame);
+  }, [draftKey]);
 
   const editing = Boolean(draft?.id);
   const subtitle = useMemo(() => {
