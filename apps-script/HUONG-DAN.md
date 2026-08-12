@@ -1,7 +1,16 @@
-# Bật thống kê dùng chung cho cả đội
+# Bật dữ liệu dùng chung cho cả đội
 
-Mặc định thống kê lưu ở `localStorage` nên mỗi máy một con số riêng. Làm theo các bước dưới
-đây để mọi người dùng cùng ghi vào một bảng chung nằm ngay trong spreadsheet ASC-CONFIG.
+Một Web App Apps Script phục vụ hai việc:
+
+- **Thống kê sử dụng** → sheet `ThongKe`
+- **Chức năng khác** (danh sách link công cụ / biểu mẫu) → sheet `ChucNang`
+
+Chưa cấu hình thì cả hai lưu ở `localStorage`, mỗi máy một bản riêng. Làm theo các bước dưới
+đây để mọi người dùng chung một nguồn nằm ngay trong spreadsheet ASC-CONFIG.
+
+> **Đã cài từ phiên bản trước?** Chép đè `Code.gs` mới rồi **Deploy lại** (Deploy > Manage
+> deployments > biểu tượng bút chì > Version: *New version* > Deploy). URL không đổi nên không
+> cần sửa `config.ts`. Không deploy lại thì phần Chức năng khác vẫn chạy, chỉ là lưu cục bộ.
 
 Toàn bộ chỉ mất khoảng 5 phút, không tốn phí, không cần thêm dịch vụ nào ngoài Google.
 
@@ -57,7 +66,8 @@ Build lại và deploy:
 npm run build
 ```
 
-Xong. Mở popup **Thống kê** sẽ thấy công tắc **Toàn hệ thống / Của tôi**.
+Xong. Mở popup **Thống kê** sẽ thấy công tắc **Toàn hệ thống / Của tôi**, và chip **Chức năng
+khác** trên thanh tiêu đề sẽ dùng danh sách chung của cả đội.
 
 ---
 
@@ -84,6 +94,30 @@ tuần tự — đây là phần bắt buộc, đừng bỏ khi chỉnh sửa sc
 **Bảng `ThongKe`** có 6 cột: `Key`, `Loại`, `Nhãn`, `Lượt xem`, `Lượt chép`, `Lần cuối`.
 Bạn có thể mở sheet này xem trực tiếp, hoặc dựng biểu đồ ngay trong Google Sheet.
 
+---
+
+## Chức năng khác (sheet `ChucNang`)
+
+Cùng Web App đó phục vụ thêm ba action: `tools` (đọc), `toolSave`, `toolDelete` (ghi, có kiểm
+`TOKEN`). Sheet tự được tạo ở lần gọi đầu tiên với các cột:
+
+| Cột | Ý nghĩa |
+|---|---|
+| `Id` | Mã tự sinh, đừng sửa tay |
+| `Tên chức năng` | Hiện đậm trên thẻ |
+| `Mô tả` | Dòng mô tả ngắn dưới tên |
+| `Link` | Bắt buộc `http://` hoặc `https://` |
+| `Chữ trên nút` | Ví dụ `Truy cập`, `Mở công cụ`, `Gửi phiếu` |
+| `Thứ tự` | Số nhỏ hiện trước, cùng số thì xếp theo tên |
+| `Cập nhật` | Thời điểm sửa gần nhất |
+
+Bình thường bạn thêm/sửa/xóa ngay trong app (có cổng mã PIN). Sửa thẳng trên sheet cũng được —
+app đọc lại khi mở modal hoặc khi bấm **Tải lại** — nhưng giữ nguyên cột `Id` để không tạo ra
+bản ghi trùng.
+
+Vì dữ liệu ghi đi qua query string của JSONP, mô tả bị giới hạn 400 ký tự và link 900 ký tự.
+Cần dài hơn thì gõ thẳng vào sheet.
+
 ## Những điểm cần biết trước khi dùng
 
 **Hạn mức.** Tài khoản Google thường cho khoảng 20.000 lượt gọi Apps Script mỗi ngày. Vì app
@@ -108,6 +142,9 @@ không hoàn tác được. Nếu số liệu quan trọng, nên xuất CSV đ�
 |---|---|
 | Popup báo "Không kết nối được máy chủ thống kê" | URL sai, hoặc chưa deploy lại sau khi sửa `Code.gs` |
 | Đọc được nhưng số không tăng | `TOKEN` trong `config.ts` khác với trong `Code.gs` |
+| Chức năng khác báo "lưu trên máy này" | `STATS_ENDPOINT` trong `config.ts` đang để trống |
+| Thêm chức năng báo "Hành động không hợp lệ: toolSave" | Đang chạy `Code.gs` bản cũ — deploy lại phiên bản mới |
+| Thêm chức năng báo "Token không hợp lệ" | `STATS_TOKEN` và `TOKEN` trong `Code.gs` không khớp |
 | Vẫn thấy số cũ | Số liệu gửi theo lô 10 giây — đợi chút hoặc bấm "Thử lại" |
 | Sau khi sửa `Code.gs` không thấy đổi | Phải **Triển khai → Quản lý triển khai → sửa → Phiên bản mới**, không chỉ lưu file |
 

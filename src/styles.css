@@ -2649,3 +2649,321 @@ button.ma-config.copyable:active {
   min-width: 0;
   overflow-wrap: anywhere;
 }
+
+/* ===================== Chức năng khác ===================== */
+
+/* Chip trên thanh tiêu đề — dùng chung dáng với .kind-tab nên tự co lại ở chế độ
+   header thu gọn trên mobile; chỉ khác tông màu (xanh lá) để không lẫn với hai tab dữ liệu. */
+.tool-chip {
+  margin-left: 6px;
+  cursor: pointer;
+}
+
+.tool-chip:hover {
+  color: var(--green);
+  border-color: rgba(var(--green-rgb), 0.5);
+  background: rgba(var(--green-rgb), 0.1);
+}
+
+.tool-chip.active {
+  color: var(--green);
+  border-color: rgba(var(--green-rgb), 0.55);
+  background: rgba(var(--green-rgb), 0.14);
+  box-shadow: inset 0 0 0 1px rgba(var(--green-rgb), 0.16);
+}
+
+.tool-chip b {
+  background: rgba(var(--green-rgb), 0.2);
+}
+
+.tools-modal {
+  width: min(760px, 100%);
+  border-top-color: rgba(var(--green-rgb), 0.7);
+}
+
+.tools-body {
+  gap: 14px;
+}
+
+.copy-button.primary {
+  color: var(--on-accent);
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  font-weight: 600;
+}
+
+.copy-button.primary:hover {
+  filter: brightness(1.08);
+  color: var(--on-accent);
+}
+
+.close-button.small {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+}
+
+/* ---------- Danh sách ---------- */
+
+.tool-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tool-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 15px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(var(--fill-rgb), 0.035);
+  transition: border-color 0.16s, background 0.16s;
+}
+
+.tool-card:hover {
+  border-color: rgba(var(--green-rgb), 0.42);
+  background: rgba(var(--green-rgb), 0.06);
+}
+
+.tool-card.busy {
+  opacity: 0.55;
+}
+
+.tool-card-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tool-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tool-card-head h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.tool-card-admin {
+  display: flex;
+  gap: 4px;
+  flex: none;
+  /* Hiện mờ sẵn để người dùng biết là sửa/xóa được, rõ hẳn khi rê chuột vào thẻ. */
+  opacity: 0.42;
+  transition: opacity 0.16s;
+}
+
+.tool-card:hover .tool-card-admin,
+.tool-card:focus-within .tool-card-admin {
+  opacity: 1;
+}
+
+.tool-icon-button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+}
+
+.tool-icon-button:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--line-strong);
+  background: rgba(var(--fill-rgb), 0.08);
+}
+
+.tool-icon-button.danger:hover:not(:disabled) {
+  color: var(--danger-fg);
+  border-color: rgba(var(--danger-rgb), 0.36);
+  background: rgba(var(--danger-rgb), 0.12);
+}
+
+.tool-desc {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+  word-break: break-word;
+}
+
+.tool-host {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 8px 0 0;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--dim);
+  overflow-wrap: anywhere;
+}
+
+.tool-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  padding: 9px 15px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--green-rgb), 0.45);
+  background: rgba(var(--green-rgb), 0.13);
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: 0.16s;
+}
+
+.tool-open:hover {
+  border-color: rgba(var(--green-rgb), 0.75);
+  background: rgba(var(--green-rgb), 0.22);
+}
+
+.tools-empty {
+  padding: 28px 16px;
+}
+
+/* ---------- Biểu mẫu thêm / sửa ---------- */
+
+.tool-form {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 15px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: rgba(var(--sunken-rgb), 0.5);
+}
+
+.tool-form-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13.5px;
+}
+
+.tool-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  position: relative;
+}
+
+.tool-field > span {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.tool-field input,
+.tool-field textarea {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 13.5px;
+}
+
+.tool-field textarea {
+  resize: vertical;
+  min-height: 62px;
+  line-height: 1.5;
+}
+
+.tool-field input:focus,
+.tool-field textarea:focus {
+  outline: none;
+  border-color: rgba(var(--accent-rgb), 0.6);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.15);
+}
+
+.tool-count {
+  position: absolute;
+  right: 2px;
+  top: 0;
+  font-style: normal;
+  font-size: 10.5px;
+  color: var(--dim);
+}
+
+.tool-field-row {
+  display: grid;
+  grid-template-columns: 1fr 110px;
+  gap: 11px;
+}
+
+.tool-form-error {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--danger-fg);
+}
+
+.tool-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.tool-form-actions .search-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+@media (max-width: 720px) {
+  .tool-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .tool-card-admin {
+    opacity: 1;
+  }
+
+  .tool-open {
+    justify-content: center;
+  }
+
+  .tool-field-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 960px) {
+  /* Hàng tiêu đề đã chật vì hai tab dữ liệu, cho chip xuống hẳn một hàng riêng
+     thay vì chen ngang làm chữ bị cắt. */
+  .topbar .tool-chip {
+    flex: 1 1 100%;
+    margin-left: 0;
+  }
+
+  /* Khi cuộn xuống, header thu gọn còn các nút vuông 34px — giữ nguyên dáng đó. */
+  .topbar.mobile-compact .tool-chip {
+    flex: none;
+    margin-left: 5px;
+  }
+}

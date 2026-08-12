@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } fro
 import {
   AlertTriangle,
   BookOpenText,
+  Boxes,
   Download,
   FileCog,
   FilterX,
@@ -40,15 +41,17 @@ import { DetailModal } from './components/DetailModal';
 import { SearchableSelect, ALL_VALUE } from './components/SearchableSelect';
 import { ScrollTopButton } from './components/ScrollTopButton';
 import { StatsModal } from './components/StatsModal';
+import { ToolsModal } from './components/ToolsModal';
 import { useToast } from './lib/toast';
 import { useTheme } from './lib/theme';
 import { usePinGate } from './lib/pin';
+import { useTools } from './lib/tools';
 import { installFlushHooks } from './lib/remoteStats';
 import type { SortState } from './components/common';
 
 /** Chu kỳ kiểm tra Google Sheet (ms). */
 const POLL_INTERVAL_MS = 15000;
-const APP_VERSION = '2.2.3';
+const APP_VERSION = '2.3.0';
 /** Màn hình hẹp thì lưới nhiều cột rất khó đọc, nên mặc định dùng dạng thẻ. */
 function isNarrowScreen() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 960px)').matches;
@@ -147,6 +150,8 @@ export default function App() {
   const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null);
   const [lastChangedAt, setLastChangedAt] = useState<Date | null>(null);
   const [statsOpen, setStatsOpen] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const { tools } = useTools();
   const [mobileCompactHeader, setMobileCompactHeader] = useState(false);
   const [compactSearchOpen, setCompactSearchOpen] = useState(false);
   const notify = useToast();
@@ -644,6 +649,19 @@ export default function App() {
           })}
         </div>
 
+        <button
+          type="button"
+          className={`kind-tab tool-chip ${toolsOpen ? 'active' : ''}`}
+          onClick={() => setToolsOpen(true)}
+          title="Các chức năng khác của đội — bấm để xem và mở"
+          aria-label="Chức năng khác"
+          aria-haspopup="dialog"
+        >
+          <Boxes size={15} />
+          <span>Chức năng khác</span>
+          {tools.length > 0 && <b>{tools.length}</b>}
+        </button>
+
         {mobileCompactHeader && (
           <button
             type="button"
@@ -904,6 +922,7 @@ export default function App() {
 
       {selected && <DetailModal record={selected} onClose={() => setSelected(null)} />}
       {statsOpen && <StatsModal records={[...configRecords, ...noteRecords]} onClose={() => setStatsOpen(false)} />}
+      {toolsOpen && <ToolsModal onClose={() => setToolsOpen(false)} />}
       </main>
     </>
   );

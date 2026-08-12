@@ -17,3 +17,10 @@ export const STATS_TOKEN = 'asc-config-huyvo257';
 export const STATS_FLUSH_MS = 10000;
 
 export const remoteStatsEnabled = () => STATS_ENDPOINT.trim().length > 0;
+
+/**
+ * Cùng một Web App Apps Script phục vụ hai việc: thống kê sử dụng và danh sách
+ * "Chức năng khác". Để trống STATS_ENDPOINT thì cả hai chuyển sang chế độ lưu cục bộ
+ * trên từng máy — app vẫn chạy, chỉ là không dùng chung được.
+ */
+export const sharedBackendEnabled = () => STATS_ENDPOINT.trim().length > 0;

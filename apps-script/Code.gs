@@ -5,7 +5,8 @@
  * Web app. Xem hướng dẫn từng bước trong apps-script/HUONG-DAN.md
  *
  * - doPost : nhận gói sự kiện từ trình duyệt (gửi bằng sendBeacon) và cộng dồn vào sheet.
- * - doGet  : trả về thống kê JSONP (?action=list), xóa 1 dòng (?action=delete) hoặc xóa sạch (?action=reset).
+ * - doGet  : thống kê   — ?action=list | delete | reset
+ *            chức năng  — ?action=tools | toolSave | toolDelete  (sheet ChucNang)
  *
  * Vì sao dùng JSONP cho phần đọc: Apps Script không đặt được header CORS cho fetch thông
  * thường. JSONP đi qua thẻ <script> nên không vướng CORS, và app đã dùng đúng kỹ thuật này
@@ -17,6 +18,10 @@ var TOKEN = 'asc-config-huyvo257';
 
 var SHEET_NAME = 'ThongKe';
 var HEADERS = ['Key', 'Loại', 'Nhãn', 'Lượt xem', 'Lượt chép', 'Lần cuối', 'Phân hệ', 'Module'];
+
+/** Danh sách "Chức năng khác" hiển thị trong app. */
+var TOOLS_SHEET = 'ChucNang';
+var TOOLS_HEADERS = ['Id', 'Tên chức năng', 'Mô tả', 'Link', 'Chữ trên nút', 'Thứ tự', 'Cập nhật'];
 
 /* ------------------------------------------------------------------ *
  * Điểm vào
@@ -38,6 +43,16 @@ function doGet(e) {
       requireToken(e.parameter.token);
       resetAll();
       payload = { ok: true, entries: [] };
+    } else if (action === 'tools') {
+      payload = { ok: true, tools: readTools() };
+    } else if (action === 'toolSave') {
+      requireToken(e.parameter.token);
+      saveTool(e.parameter);
+      payload = { ok: true, tools: readTools() };
+    } else if (action === 'toolDelete') {
+      requireToken(e.parameter.token);
+      deleteTool(e.parameter.id);
+      payload = { ok: true, tools: readTools() };
     } else {
       payload = { ok: false, error: 'Hành động không hợp lệ: ' + action };
     }
@@ -211,6 +226,120 @@ function resetAll() {
     var lastRow = sheet.getLastRow();
     if (lastRow > 1) sheet.deleteRows(2, lastRow - 1);
     SpreadsheetApp.flush();
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Chức năng khác (sheet ChucNang)
+ * ------------------------------------------------------------------ */
+
+function getToolsSheet() {
+  var book = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = book.getSheetByName(TOOLS_SHEET);
+  if (!sheet) {
+    sheet = book.insertSheet(TOOLS_SHEET);
+  }
+  sheet.getRange(1, 1, 1, TOOLS_HEADERS.length).setValues([TOOLS_HEADERS]).setFontWeight('bold');
+  sheet.setFrozenRows(1);
+  return sheet;
+}
+
+function readTools() {
+  var sheet = getToolsSheet();
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return [];
+
+  var values = sheet.getRange(2, 1, lastRow - 1, TOOLS_HEADERS.length).getValues();
+  var tools = [];
+
+  for (var i = 0; i < values.length; i += 1) {
+    var row = values[i];
+    if (!row[0] || !row[1] || !row[3]) continue;
+    var updatedAt = row[6] instanceof Date ? row[6].getTime() : Number(row[6]) || 0;
+    tools.push({
+      id: String(row[0]),
+      name: String(row[1]),
+      desc: String(row[2] || ''),
+      url: String(row[3]),
+      buttonLabel: String(row[4] || 'Truy cập'),
+      order: Number(row[5]) || 0,
+      updatedAt: updatedAt,
+    });
+  }
+
+  tools.sort(function (a, b) {
+    return a.order - b.order || a.name.localeCompare(b.name);
+  });
+  return tools;
+}
+
+/**
+ * Thêm mới hoặc cập nhật một chức năng.
+ * Có Id trùng dòng nào thì ghi đè dòng đó, không thì thêm dòng mới ở cuối.
+ */
+function saveTool(params) {
+  var id = String((params && params.id) || '').trim();
+  var name = String((params && params.name) || '').trim();
+  var url = String((params && params.url) || '').trim();
+
+  if (!id) throw new Error('Thiếu Id chức năng');
+  if (!name) throw new Error('Thiếu tên chức năng');
+  if (!/^https?:\/\//i.test(url)) throw new Error('Link phải bắt đầu bằng http:// hoặc https://');
+
+  var row = [
+    id,
+    name.slice(0, 120),
+    String((params && params.desc) || '').slice(0, 400),
+    url.slice(0, 900),
+    String((params && params.label) || 'Truy cập').slice(0, 24),
+    Number((params && params.order) || 0) || 0,
+    new Date(),
+  ];
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(25000);
+  try {
+    var sheet = getToolsSheet();
+    var lastRow = sheet.getLastRow();
+    var ids = lastRow > 1 ? sheet.getRange(2, 1, lastRow - 1, 1).getValues() : [];
+
+    for (var i = 0; i < ids.length; i += 1) {
+      if (String(ids[i][0]) === id) {
+        sheet.getRange(i + 2, 1, 1, TOOLS_HEADERS.length).setValues([row]);
+        SpreadsheetApp.flush();
+        return true;
+      }
+    }
+    sheet.getRange(Math.max(lastRow, 1) + 1, 1, 1, TOOLS_HEADERS.length).setValues([row]);
+    SpreadsheetApp.flush();
+    return true;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function deleteTool(id) {
+  var cleanId = String(id || '').trim();
+  if (!cleanId) throw new Error('Thiếu Id chức năng cần xóa');
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(25000);
+  try {
+    var sheet = getToolsSheet();
+    var lastRow = sheet.getLastRow();
+    if (lastRow < 2) return false;
+
+    var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (var i = ids.length - 1; i >= 0; i -= 1) {
+      if (String(ids[i][0]) === cleanId) {
+        sheet.deleteRow(i + 2);
+        SpreadsheetApp.flush();
+        return true;
+      }
+    }
+    return false;
   } finally {
     lock.releaseLock();
   }
