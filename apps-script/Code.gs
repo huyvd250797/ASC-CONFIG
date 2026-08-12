@@ -18,6 +18,10 @@ var TOKEN = 'asc-config-huyvo257';
 
 var SHEET_NAME = 'ThongKe';
 var HEADERS = ['Key', 'Loại', 'Nhãn', 'Lượt xem', 'Lượt chép', 'Lần cuối', 'Phân hệ', 'Module'];
+var STATS_CACHE_KEY = 'asc_config_stats_entries_v2';
+var STATS_CACHE_SECONDS = 30;
+var STATS_DEFAULT_LIMIT = 300;
+var STATS_MAX_LIMIT = 1000;
 
 /** Danh sách "Chức năng khác" hiển thị trong app. */
 var TOOLS_SHEET = 'ChucNang';
@@ -34,11 +38,11 @@ function doGet(e) {
 
   try {
     if (action === 'list') {
-      payload = { ok: true, entries: readAll() };
+      payload = usagePayload(e.parameter);
     } else if (action === 'delete') {
       requireToken(e.parameter.token);
       deleteOne(e.parameter.key);
-      payload = { ok: true, entries: readAll() };
+      payload = usagePayload(e.parameter);
     } else if (action === 'reset') {
       requireToken(e.parameter.token);
       resetAll();
@@ -91,6 +95,14 @@ function doPost(e) {
 function requireToken(token) {
   if (String(token || '') !== TOKEN) {
     throw new Error('Token không hợp lệ');
+  }
+}
+
+function clearStatsCache() {
+  try {
+    CacheService.getScriptCache().remove(STATS_CACHE_KEY);
+  } catch (err) {
+    // Cache là tối ưu phụ, hỏng cache không được làm hỏng thống kê.
   }
 }
 
@@ -175,13 +187,14 @@ function applyEvents(events) {
       sheet.getRange(2, 1, values.length, HEADERS.length).setValues(values);
     }
     SpreadsheetApp.flush();
+    clearStatsCache();
     return applied;
   } finally {
     lock.releaseLock();
   }
 }
 
-function readAll() {
+function readEntriesFromSheet() {
   var sheet = getSheet();
   var lastRow = sheet.getLastRow();
   if (lastRow < 2) return [];
@@ -207,6 +220,83 @@ function readAll() {
   return entries;
 }
 
+function getCachedEntries() {
+  var cache;
+  try {
+    cache = CacheService.getScriptCache();
+    var cached = cache.get(STATS_CACHE_KEY);
+    if (cached) return JSON.parse(cached);
+  } catch (err) {
+    cache = null;
+  }
+
+  var entries = readEntriesFromSheet();
+  try {
+    var json = JSON.stringify(entries);
+    if (cache && json.length < 95000) cache.put(STATS_CACHE_KEY, json, STATS_CACHE_SECONDS);
+  } catch (err2) {
+    // Bảng lớn quá giới hạn cache thì bỏ qua cache, vẫn trả dữ liệu bình thường.
+  }
+  return entries;
+}
+
+function normalizeSearchText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function compareText(left, right) {
+  return String(left || '').localeCompare(String(right || ''), 'vi', { numeric: true, sensitivity: 'base' });
+}
+
+function usagePayload(params) {
+  var options = params || {};
+  var entries = getCachedEntries();
+  var query = normalizeSearchText(options.q || options.search || '');
+  var filtered = [];
+  var totalViews = 0;
+  var totalCopies = 0;
+
+  for (var i = 0; i < entries.length; i += 1) {
+    var entry = entries[i];
+    var haystack = normalizeSearchText([entry.key, entry.label, entry.phanHe, entry.module, entry.kind].join(' '));
+    if (query && haystack.indexOf(query) === -1) continue;
+    filtered.push(entry);
+    totalViews += Number(entry.views) || 0;
+    totalCopies += Number(entry.copies) || 0;
+  }
+
+  var sort = String(options.sort || 'copies');
+  var direction = String(options.dir || 'desc') === 'asc' ? 1 : -1;
+  var textSort = sort === 'label' || sort === 'phanHe' || sort === 'module';
+  filtered.sort(function (a, b) {
+    if (textSort) return compareText(a[sort], b[sort]) * direction || (Number(b.copies) || 0) - (Number(a.copies) || 0);
+    return ((Number(a[sort]) || 0) - (Number(b[sort]) || 0)) * direction || (Number(b.copies) || 0) - (Number(a.copies) || 0);
+  });
+
+  var totalRows = filtered.length;
+  var limit = Math.min(Math.max(Number(options.limit) || STATS_DEFAULT_LIMIT, 1), STATS_MAX_LIMIT);
+  var offset = Math.max(Number(options.offset) || 0, 0);
+  var page = filtered.slice(offset, offset + limit);
+
+  return {
+    ok: true,
+    entries: page,
+    totalRows: totalRows,
+    totalViews: totalViews,
+    totalCopies: totalCopies,
+    offset: offset,
+    limit: limit,
+    partial: offset + page.length < totalRows,
+  };
+}
+
+function readAll() {
+  return usagePayload({ limit: STATS_MAX_LIMIT }).entries;
+}
 
 function deleteOne(key) {
   var cleanKey = String(key || '');
@@ -224,6 +314,7 @@ function deleteOne(key) {
       if (String(keys[i][0]) === cleanKey) {
         sheet.deleteRow(i + 2);
         SpreadsheetApp.flush();
+        clearStatsCache();
         return true;
       }
     }
@@ -241,6 +332,7 @@ function resetAll() {
     var lastRow = sheet.getLastRow();
     if (lastRow > 1) sheet.deleteRows(2, lastRow - 1);
     SpreadsheetApp.flush();
+    clearStatsCache();
   } finally {
     lock.releaseLock();
   }

@@ -109,25 +109,77 @@ export function installFlushHooks() {
  * ------------------------------------------------------------------ */
 
 type RemoteResponse = { ok?: boolean; error?: string; entries?: UsageEntry[] };
+export type RemoteUsageResult = {
+  entries: UsageEntry[];
+  totalRows: number;
+  totalViews: number;
+  totalCopies: number;
+  partial: boolean;
+};
+export type RemoteUsageOptions = {
+  query?: string;
+  sortKey?: string;
+  descending?: boolean;
+  limit?: number;
+  offset?: number;
+};
+
+type RemoteListResponse = RemoteResponse & {
+  totalRows?: number;
+  totalViews?: number;
+  totalCopies?: number;
+  partial?: boolean;
+};
+
+let lastRemoteResult: RemoteUsageResult | null = null;
+
+function normalizeResult(response: RemoteListResponse): RemoteUsageResult {
+  const entries = response.entries || [];
+  const fallbackTotals = entries.reduce(
+    (sum, entry) => ({ views: sum.views + entry.views, copies: sum.copies + entry.copies }),
+    { views: 0, copies: 0 },
+  );
+  return {
+    entries,
+    totalRows: Number(response.totalRows) || entries.length,
+    totalViews: Number(response.totalViews) || fallbackTotals.views,
+    totalCopies: Number(response.totalCopies) || fallbackTotals.copies,
+    partial: Boolean(response.partial),
+  };
+}
 
 async function requestRemote(params: Record<string, string>) {
   const response = await jsonp<RemoteResponse>(params);
-  return response.entries || [];
+  const result = normalizeResult(response);
+  if (params.action === 'list') lastRemoteResult = result;
+  return result;
 }
 
 /** Lấy bảng thống kê dùng chung của toàn bộ người dùng. */
-export async function fetchRemoteUsage() {
-  if (!remoteStatsEnabled()) return [];
+export function getCachedRemoteUsage() {
+  return lastRemoteResult;
+}
+
+export async function fetchRemoteUsage(options: RemoteUsageOptions = {}) {
+  if (!remoteStatsEnabled()) return normalizeResult({});
   // Đẩy nốt hàng đợi trước để số liệu đọc về là mới nhất.
-  await flushUsage();
-  return requestRemote({ action: 'list' });
+  void flushUsage();
+  const params: Record<string, string> = { action: 'list' };
+  const query = (options.query || '').trim();
+  if (query) params.q = query;
+  if (options.sortKey) params.sort = options.sortKey;
+  if (options.descending !== undefined) params.dir = options.descending ? 'desc' : 'asc';
+  if (options.limit) params.limit = String(options.limit);
+  if (options.offset) params.offset = String(options.offset);
+  return requestRemote(params);
 }
 
 /** Xóa một bản ghi thống kê dùng chung trên server. */
 export async function deleteRemoteUsage(key: string) {
   if (!remoteStatsEnabled()) return [];
   pending.delete(key);
-  return requestRemote({ action: 'delete', token: STATS_TOKEN, key });
+  const result = await requestRemote({ action: 'delete', token: STATS_TOKEN, key });
+  return result.entries;
 }
 
 /** Xóa toàn bộ số liệu dùng chung trên server. */
