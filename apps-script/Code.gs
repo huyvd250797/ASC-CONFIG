@@ -99,10 +99,25 @@ function getSheet() {
   var sheet = book.getSheetByName(SHEET_NAME);
   if (!sheet) {
     sheet = book.insertSheet(SHEET_NAME);
+    sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]).setFontWeight('bold');
+    sheet.setFrozenRows(1);
+    return sheet;
   }
-  // Tương thích dữ liệu cũ 6 cột: tự bổ sung hai cột metadata mới mà không xóa số liệu cũ.
-  sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]).setFontWeight('bold');
-  sheet.setFrozenRows(1);
+
+  // Tương thích dữ liệu cũ 6 cột nhưng không ghi lại header ở mọi lần đọc.
+  // Việc ghi thừa này khiến Apps Script cold-start lâu và dễ làm popup thống kê timeout.
+  var currentHeaders = sheet.getRange(1, 1, 1, HEADERS.length).getDisplayValues()[0];
+  var needsHeaderUpdate = false;
+  for (var i = 0; i < HEADERS.length; i += 1) {
+    if (currentHeaders[i] !== HEADERS[i]) {
+      needsHeaderUpdate = true;
+      break;
+    }
+  }
+  if (needsHeaderUpdate) {
+    sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]).setFontWeight('bold');
+  }
+  if (sheet.getFrozenRows() !== 1) sheet.setFrozenRows(1);
   return sheet;
 }
 
