@@ -172,11 +172,12 @@ giữ nguyên bộ lọc, còn nút biểu tượng phễu ở thanh lọc chỉ
 
 ## Mã PIN quản trị
 
-Ba thao tác sau yêu cầu nhập mã PIN 6 số:
+Các thao tác sau yêu cầu nhập mã PIN 6 số:
 
 - Mở Google Sheet nguồn (link ở chân trang) — vì đây là nơi sửa được dữ liệu gốc
 - Xuất CSV dữ liệu tra cứu
 - Xuất CSV thống kê và xóa số liệu thống kê
+- Thêm, sửa, xóa mục trong **Chức năng khác**
 
 Mã PIN **không nằm trong source dưới dạng chữ rõ**. `src/lib/pin.tsx` chỉ chứa bản băm SHA-256
 của (salt + mã PIN); nhập vào bao nhiêu cũng chỉ được so bằng giá trị băm. Hàm băm tự viết ở
@@ -195,6 +196,34 @@ printf 'asc-config-pin::v1123456' | shasum -a 256
 > biện pháp bảo mật thật**: người biết kỹ thuật vẫn có thể dò một mã PIN 6 số bằng cách thử hết
 > 10⁶ khả năng trên bản băm, hoặc chỉnh sửa mã nguồn phía client. Muốn bảo vệ thật sự thì việc
 > kiểm tra phải diễn ra ở phía máy chủ.
+
+## Chức năng khác
+
+Chip **Chức năng khác** nằm cạnh hai tab CONFIG / Các lưu ý trên thanh tiêu đề, kèm số lượng
+mục đang có. Bấm vào mở danh sách các công cụ, biểu mẫu, trang nội bộ khác của đội — mỗi mục
+gồm tên, mô tả ngắn, tên miền và một nút mở link ở bên phải.
+
+Chữ trên nút do người thêm tự đặt (`Truy cập`, `Mở công cụ`, `Gửi phiếu`, `Thực hiện`…) để người
+xem nhìn là biết bấm vào sẽ sang đâu và làm gì. Link luôn mở ở tab mới với `rel="noopener noreferrer"`.
+
+Thêm / sửa / xóa đều đi qua cổng mã PIN quản trị. Ô **Thứ tự** quyết định vị trí hiển thị: số nhỏ
+lên trước, cùng số thì xếp theo tên.
+
+Link nhập thiếu `https://` sẽ được tự thêm vào. App chỉ nhận `http` và `https` — dán `javascript:`
+hay `data:` sẽ bị từ chối ngay tại biểu mẫu.
+
+### Lưu ở đâu
+
+| Tình huống | Nơi lưu | Ai thấy |
+| --- | --- | --- |
+| Đã khai báo `STATS_ENDPOINT` | Sheet `ChucNang` qua Apps Script | Cả đội |
+| Chưa khai báo | `localStorage` của trình duyệt | Riêng máy đang dùng |
+
+Danh sách đọc được gần nhất luôn được cache lại ở `localStorage`, nên mở modal là thấy ngay kể cả
+khi mạng chậm; app tải bản mới ở nền và có nút **Tải lại** để lấy thủ công.
+
+Nếu bạn đã deploy Apps Script từ phiên bản trước thì cần **deploy lại** để có ba action mới
+(`tools`, `toolSave`, `toolDelete`). Sheet `ChucNang` tự được tạo ở lần gọi đầu tiên.
 
 ## Bộ lọc
 
@@ -339,16 +368,19 @@ src/
   lib/sha256.ts               SHA-256 tự viết, chạy được cả ngoài ngữ cảnh bảo mật
   lib/toast.tsx               Hệ thống thông báo dùng chung
   lib/remoteStats.ts          Đồng bộ thống kê lên Apps Script (hàng đợi, gửi lô, đọc JSONP)
-  config.ts                   Khai báo endpoint và token thống kê dùng chung
+  lib/jsonp.ts                Gọi Apps Script bằng JSONP, dùng chung cho thống kê và Chức năng khác
+  lib/tools.ts                Danh sách Chức năng khác: đọc/ghi Apps Script, cache localStorage
+  config.ts                   Khai báo endpoint và token dùng chung
 
 apps-script/
-  Code.gs                     Web App nhận và tổng hợp thống kê vào sheet ThongKe
+  Code.gs                     Web App: thống kê (sheet ThongKe) và Chức năng khác (sheet ChucNang)
   HUONG-DAN.md                Hướng dẫn deploy từng bước
   components/ConfigGrid.tsx   Lưới sheet CONFIG
   components/NoteGrid.tsx     Lưới sheet Các lưu ý
   components/CardList.tsx     Chế độ xem thẻ cho cả hai loại
   components/DetailModal.tsx  Popup chi tiết
   components/StatsModal.tsx   Popup thống kê sử dụng
+  components/ToolsModal.tsx   Popup Chức năng khác: danh sách, thêm/sửa/xóa qua cổng PIN
   components/SearchableSelect.tsx  Ô chọn có tìm kiếm cho Phân hệ / Module
   components/ScrollTopButton.tsx   Nút lên đầu danh sách
   components/Highlight.tsx    Tô sáng phần khớp từ khóa
