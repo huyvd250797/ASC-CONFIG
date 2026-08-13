@@ -1,4 +1,4 @@
-# ASC-CONFIG v2.1.0
+# ASC-CONFIG v2.3.4
 
 Web app tra cứu **Config** và **Các lưu ý** vận hành, đọc dữ liệu trực tiếp từ Google Sheet.
 

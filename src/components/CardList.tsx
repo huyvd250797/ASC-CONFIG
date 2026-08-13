@@ -12,6 +12,10 @@ type Props = {
   onSelect: (record: AppRecord) => void;
 };
 
+function isSelectingText() {
+  return Boolean(window.getSelection()?.toString().trim());
+}
+
 export function CardList({ records, tokens, onSelect }: Props) {
   const notify = useToast();
 
@@ -34,7 +38,15 @@ export function CardList({ records, tokens, onSelect }: Props) {
           record.kind === 'config' ? toneFor('phanHe', record.phanHe) : toneFor('module', record.module);
 
         return (
-          <article key={record.id} className="record-card" style={toneVars(hue)} onClick={() => onSelect(record)}>
+          <article
+            key={record.id}
+            className="record-card"
+            style={toneVars(hue)}
+            onClick={() => {
+              if (isSelectingText()) return;
+              onSelect(record);
+            }}
+          >
             <header>
               <span className="card-stt">#{record.stt}</span>
               <span className="chip-tone">

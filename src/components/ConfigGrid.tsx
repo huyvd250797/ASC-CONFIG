@@ -25,6 +25,10 @@ type Props = {
   onSelect: (record: ConfigRecord) => void;
 };
 
+function isSelectingText() {
+  return Boolean(window.getSelection()?.toString().trim());
+}
+
 export function ConfigGrid({ records, tokens, sort, onSort, onSelect }: Props) {
   const notify = useToast();
 
@@ -51,7 +55,10 @@ export function ConfigGrid({ records, tokens, sort, onSort, onSelect }: Props) {
               key={record.id}
               style={toneVars(toneFor('phanHe', record.phanHe))}
               tabIndex={0}
-              onClick={() => onSelect(record)}
+              onClick={() => {
+                if (isSelectingText()) return;
+                onSelect(record);
+              }}
               onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                   event.preventDefault();

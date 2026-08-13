@@ -19,6 +19,10 @@ type Props = {
   onSelect: (record: NoteRecord) => void;
 };
 
+function isSelectingText() {
+  return Boolean(window.getSelection()?.toString().trim());
+}
+
 export function NoteGrid({ records, tokens, sort, onSort, onSelect }: Props) {
   return (
     <div className="grid-wrap">
@@ -30,7 +34,10 @@ export function NoteGrid({ records, tokens, sort, onSort, onSelect }: Props) {
               key={record.id}
               style={toneVars(toneFor('module', record.module))}
               tabIndex={0}
-              onClick={() => onSelect(record)}
+              onClick={() => {
+                if (isSelectingText()) return;
+                onSelect(record);
+              }}
               onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                   event.preventDefault();

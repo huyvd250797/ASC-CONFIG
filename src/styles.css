@@ -226,7 +226,19 @@ body {
   background-attachment: fixed;
 }
 
-body, #root, .app-shell { -webkit-user-select: none; user-select: none; }
+body, #root, .app-shell { -webkit-user-select: text; user-select: text; }
+button,
+input,
+textarea,
+select,
+.compact-action,
+.view-toggle,
+.tab-button,
+.close-button,
+.copy-button {
+  -webkit-user-select: none;
+  user-select: none;
+}
 input, textarea { -webkit-user-select: text; user-select: text; }
 
 button,
@@ -1154,6 +1166,13 @@ mark {
   color: var(--tone-strong);
   text-shadow: var(--code-glow);
   word-break: break-word;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.ma-config * {
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* Bấm thẳng vào mã là sao chép */
