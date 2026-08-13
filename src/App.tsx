@@ -51,7 +51,7 @@ import type { SortState } from './components/common';
 
 /** Chu kỳ kiểm tra Google Sheet (ms). */
 const POLL_INTERVAL_MS = 15000;
-const APP_VERSION = '2.3.3';
+const APP_VERSION = '2.3.4';
 /** Màn hình hẹp thì lưới nhiều cột rất khó đọc, nên mặc định dùng dạng thẻ. */
 function isNarrowScreen() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 960px)').matches;
@@ -322,16 +322,6 @@ export default function App() {
     const frame = window.requestAnimationFrame(() => compactSearchInputRef.current?.focus());
     return () => window.cancelAnimationFrame(frame);
   }, [compactSearchOpen]);
-
-  useEffect(() => {
-    const blockManualCopy = (event: ClipboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (target?.closest('[data-allow-native-copy="true"]')) return;
-      event.preventDefault();
-    };
-    document.addEventListener('copy', blockManualCopy, true);
-    return () => document.removeEventListener('copy', blockManualCopy, true);
-  }, []);
 
   // Kiểm tra định kỳ + kiểm tra ngay khi người dùng quay lại tab.
   useEffect(() => {
