@@ -3,7 +3,7 @@ import {
   AlertTriangle,
   ArrowUpRight,
   Boxes,
-  Link2,
+  Lock,
   Loader2,
   Pencil,
   Plus,
@@ -14,7 +14,6 @@ import {
 import {
   DEFAULT_BUTTON_LABEL,
   TOOL_LIMITS,
-  hostOf,
   removeTool,
   saveTool,
   useTools,
@@ -30,11 +29,25 @@ type Draft = {
   name: string;
   desc: string;
   url: string;
+  password: string;
   buttonLabel: string;
   order: string;
 };
 
-const emptyDraft: Draft = { name: '', desc: '', url: '', buttonLabel: DEFAULT_BUTTON_LABEL, order: '' };
+type PasswordGate = {
+  tool: ToolLink;
+  password: string;
+  error: string;
+};
+
+const emptyDraft: Draft = {
+  name: '',
+  desc: '',
+  url: '',
+  password: '',
+  buttonLabel: DEFAULT_BUTTON_LABEL,
+  order: '',
+};
 
 function draftOf(tool: ToolLink): Draft {
   return {
@@ -42,6 +55,7 @@ function draftOf(tool: ToolLink): Draft {
     name: tool.name,
     desc: tool.desc,
     url: tool.url,
+    password: tool.password || '',
     buttonLabel: tool.buttonLabel,
     order: tool.order ? String(tool.order) : '',
   };
@@ -57,7 +71,9 @@ export function ToolsModal({ onClose }: { onClose: () => void }) {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
   const [busyId, setBusyId] = useState('');
+  const [passwordGate, setPasswordGate] = useState<PasswordGate | null>(null);
   const nameRef = useRef<HTMLInputElement>(null);
+  const accessPasswordRef = useRef<HTMLInputElement>(null);
   const draftKey = draft ? draft.id || '__new__' : '';
 
   useModalScrollLock();
@@ -65,18 +81,25 @@ export function ToolsModal({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
-      if (draft) setDraft(null);
+      if (passwordGate) setPasswordGate(null);
+      else if (draft) setDraft(null);
       else onClose();
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [draft, onClose]);
+  }, [draft, onClose, passwordGate]);
 
   useEffect(() => {
     if (!draftKey) return;
     const frame = window.requestAnimationFrame(() => nameRef.current?.focus());
     return () => window.cancelAnimationFrame(frame);
   }, [draftKey]);
+
+  useEffect(() => {
+    if (!passwordGate) return;
+    const frame = window.requestAnimationFrame(() => accessPasswordRef.current?.focus());
+    return () => window.cancelAnimationFrame(frame);
+  }, [passwordGate]);
 
   const editing = Boolean(draft?.id);
   const subtitle = useMemo(() => {
@@ -135,6 +158,7 @@ export function ToolsModal({ onClose }: { onClose: () => void }) {
         name: draft.name,
         desc: draft.desc,
         url: draft.url,
+        password: draft.password,
         buttonLabel: draft.buttonLabel,
         order: Number(draft.order) || 0,
       });
@@ -154,6 +178,32 @@ export function ToolsModal({ onClose }: { onClose: () => void }) {
   const setField = (key: keyof Draft, value: string) => {
     setDraft((current) => (current ? { ...current, [key]: value } : current));
     setFormError('');
+  };
+
+  const openUrl = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const openTool = (tool: ToolLink) => {
+    if (tool.password) {
+      setPasswordGate({ tool, password: '', error: '' });
+      return;
+    }
+    openUrl(tool.url);
+  };
+
+  const submitPassword = (event: FormEvent) => {
+    event.preventDefault();
+    if (!passwordGate) return;
+    if (passwordGate.password !== passwordGate.tool.password) {
+      setPasswordGate((current) =>
+        current ? { ...current, error: 'Password không đúng. Vui lòng kiểm tra lại.' } : current,
+      );
+      return;
+    }
+    const url = passwordGate.tool.url;
+    setPasswordGate(null);
+    openUrl(url);
   };
 
   const showLoading = loading && tools.length === 0;
@@ -258,6 +308,18 @@ export function ToolsModal({ onClose }: { onClose: () => void }) {
                 />
               </label>
 
+              <label className="tool-field">
+                <span>Password truy cập</span>
+                <input
+                  value={draft.password}
+                  maxLength={TOOL_LIMITS.password}
+                  onChange={(event) => setField('password', event.target.value)}
+                  placeholder="Không nhập thì ai cũng truy cập được"
+                  type="password"
+                  autoComplete="new-password"
+                />
+              </label>
+
               <div className="tool-field-row">
                 <label className="tool-field">
                   <span>Chữ trên nút</span>
@@ -342,26 +404,77 @@ export function ToolsModal({ onClose }: { onClose: () => void }) {
 
                     {tool.desc && <p className="tool-desc">{tool.desc}</p>}
 
-                    <p className="tool-host" title={tool.url}>
-                      <Link2 size={13} />
-                      {hostOf(tool.url)}
-                    </p>
+                    {tool.password && (
+                      <p className="tool-protected">
+                        <Lock size={13} />
+                        Cần password để truy cập
+                      </p>
+                    )}
                   </div>
 
-                  <a
+                  <button
+                    type="button"
                     className="tool-open"
-                    href={tool.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    onClick={() => openTool(tool)}
                   >
                     <span>{tool.buttonLabel || DEFAULT_BUTTON_LABEL}</span>
                     <ArrowUpRight size={16} />
-                  </a>
+                  </button>
                 </li>
               ))}
             </ul>
           )}
         </div>
+
+        {passwordGate && (
+          <div className="tool-password-backdrop" role="presentation">
+            <form className="tool-password-box" onSubmit={submitPassword}>
+              <div className="tool-password-head">
+                <div>
+                  <strong>Nhập password</strong>
+                  <span>{passwordGate.tool.name}</span>
+                </div>
+                <button
+                  type="button"
+                  className="close-button small"
+                  onClick={() => setPasswordGate(null)}
+                  aria-label="Đóng nhập password"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <label className="tool-field">
+                <span>Password</span>
+                <input
+                  ref={accessPasswordRef}
+                  value={passwordGate.password}
+                  onChange={(event) =>
+                    setPasswordGate((current) =>
+                      current ? { ...current, password: event.target.value, error: '' } : current,
+                    )
+                  }
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="Nhập password để mở chức năng"
+                />
+              </label>
+              {passwordGate.error && (
+                <p className="tool-form-error" role="alert">
+                  <AlertTriangle size={14} />
+                  {passwordGate.error}
+                </p>
+              )}
+              <div className="tool-form-actions">
+                <button type="button" className="ghost-button" onClick={() => setPasswordGate(null)}>
+                  Hủy
+                </button>
+                <button type="submit" className="search-submit">
+                  Truy cập
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
         <footer className="stats-foot">
           {shared

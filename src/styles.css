@@ -2766,6 +2766,7 @@ button.ma-config.copyable:active {
 .tools-modal {
   width: min(760px, 100%);
   border-top-color: rgba(var(--green-rgb), 0.7);
+  position: relative;
 }
 
 .tools-body {
@@ -2897,6 +2898,15 @@ button.ma-config.copyable:active {
   overflow-wrap: anywhere;
 }
 
+.tool-protected {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  color: var(--green);
+}
+
 .tool-open {
   display: inline-flex;
   align-items: center;
@@ -2912,6 +2922,7 @@ button.ma-config.copyable:active {
   text-decoration: none;
   white-space: nowrap;
   transition: 0.16s;
+  cursor: pointer;
 }
 
 .tool-open:hover {
@@ -3018,6 +3029,51 @@ button.ma-config.copyable:active {
   display: inline-flex;
   align-items: center;
   gap: 7px;
+}
+
+.tool-password-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(3, 7, 14, 0.52);
+  backdrop-filter: blur(8px);
+}
+
+.tool-password-box {
+  width: min(420px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  padding: 16px;
+  border: 1px solid rgba(var(--green-rgb), 0.45);
+  border-radius: 12px;
+  background: var(--modal-bg);
+  box-shadow: var(--shadow);
+}
+
+.tool-password-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.tool-password-head strong,
+.tool-password-head span {
+  display: block;
+}
+
+.tool-password-head strong {
+  font-size: 15px;
+}
+
+.tool-password-head span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12.5px;
 }
 
 @media (max-width: 720px) {

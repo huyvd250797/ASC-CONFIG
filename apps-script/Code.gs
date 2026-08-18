@@ -25,7 +25,7 @@ var STATS_MAX_LIMIT = 1000;
 
 /** Danh sách "Chức năng khác" hiển thị trong app. */
 var TOOLS_SHEET = 'ChucNang';
-var TOOLS_HEADERS = ['Id', 'Tên chức năng', 'Mô tả', 'Link', 'Chữ trên nút', 'Thứ tự', 'Cập nhật'];
+var TOOLS_HEADERS = ['Id', 'Tên chức năng', 'Mô tả', 'Link', 'Chữ trên nút', 'Thứ tự', 'Cập nhật', 'Password'];
 
 /* ------------------------------------------------------------------ *
  * Điểm vào
@@ -388,6 +388,7 @@ function readTools() {
       buttonLabel: String(row[4] || 'Truy cập'),
       order: Number(row[5]) || 0,
       updatedAt: updatedAt,
+      password: String(row[7] || ''),
     });
   }
 
@@ -418,6 +419,7 @@ function saveTool(params) {
     String((params && params.label) || 'Truy cập').slice(0, 24),
     Number((params && params.order) || 0) || 0,
     new Date(),
+    String((params && params.password) || '').slice(0, 120),
   ];
 
   var lock = LockService.getScriptLock();

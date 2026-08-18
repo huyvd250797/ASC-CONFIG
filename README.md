@@ -1,4 +1,4 @@
-# ASC-CONFIG v2.3.4
+# ASC-CONFIG v2.3.5
 
 Web app tra cứu **Config** và **Các lưu ý** vận hành, đọc dữ liệu trực tiếp từ Google Sheet.
 
@@ -178,6 +178,7 @@ Các thao tác sau yêu cầu nhập mã PIN 6 số:
 - Xuất CSV dữ liệu tra cứu
 - Xuất CSV thống kê và xóa số liệu thống kê
 - Thêm, sửa, xóa mục trong **Chức năng khác**
+- Đặt password riêng cho từng mục **Chức năng khác** nếu muốn chặn truy cập link.
 
 Mã PIN **không nằm trong source dưới dạng chữ rõ**. `src/lib/pin.tsx` chỉ chứa bản băm SHA-256
 của (salt + mã PIN); nhập vào bao nhiêu cũng chỉ được so bằng giá trị băm. Hàm băm tự viết ở
