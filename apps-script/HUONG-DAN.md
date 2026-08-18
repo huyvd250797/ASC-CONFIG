@@ -110,6 +110,7 @@ Cùng Web App đó phục vụ thêm ba action: `tools` (đọc), `toolSave`, `t
 | `Chữ trên nút` | Ví dụ `Truy cập`, `Mở công cụ`, `Gửi phiếu` |
 | `Thứ tự` | Số nhỏ hiện trước, cùng số thì xếp theo tên |
 | `Cập nhật` | Thời điểm sửa gần nhất |
+| `Password` | Không bắt buộc. Nếu có nhập, người dùng phải nhập đúng password mới mở được link |
 
 Bình thường bạn thêm/sửa/xóa ngay trong app (có cổng mã PIN). Sửa thẳng trên sheet cũng được —
 app đọc lại khi mở modal hoặc khi bấm **Tải lại** — nhưng giữ nguyên cột `Id` để không tạo ra

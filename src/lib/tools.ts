@@ -18,6 +18,8 @@ export type ToolLink = {
   name: string;
   desc: string;
   url: string;
+  /** Mật khẩu tùy chọn; nếu có thì người dùng phải nhập đúng mới mở được link. */
+  password: string;
   /** Chữ trên nút, ví dụ "Truy cập", "Thực hiện", "Mở form". */
   buttonLabel: string;
   /** Số nhỏ hiện trước; cùng số thì xếp theo tên. */
@@ -30,11 +32,12 @@ export type ToolDraft = {
   name: string;
   desc: string;
   url: string;
+  password: string;
   buttonLabel: string;
   order: number;
 };
 
-export const TOOL_LIMITS = { name: 120, desc: 400, url: 900, buttonLabel: 24 };
+export const TOOL_LIMITS = { name: 120, desc: 400, url: 900, password: 120, buttonLabel: 24 };
 export const DEFAULT_BUTTON_LABEL = 'Truy cập';
 
 const CACHE_KEY = 'asc-config-tools-v1';
@@ -95,6 +98,7 @@ function toTool(raw: Partial<ToolLink> & { id?: unknown }): ToolLink | null {
     name: name.slice(0, TOOL_LIMITS.name),
     desc: String(raw.desc || '').trim().slice(0, TOOL_LIMITS.desc),
     url,
+    password: String(raw.password || '').slice(0, TOOL_LIMITS.password),
     buttonLabel: String(raw.buttonLabel || '').trim().slice(0, TOOL_LIMITS.buttonLabel) || DEFAULT_BUTTON_LABEL,
     order: Number(raw.order) || 0,
     updatedAt: Number(raw.updatedAt) || 0,
@@ -184,6 +188,7 @@ export async function saveTool(draft: ToolDraft) {
     name,
     desc: draft.desc.trim().slice(0, TOOL_LIMITS.desc),
     url,
+    password: draft.password.slice(0, TOOL_LIMITS.password),
     buttonLabel: draft.buttonLabel.trim().slice(0, TOOL_LIMITS.buttonLabel) || DEFAULT_BUTTON_LABEL,
     order: Number(draft.order) || 0,
     updatedAt: Date.now(),
@@ -201,6 +206,7 @@ export async function saveTool(draft: ToolDraft) {
     name: tool.name,
     desc: tool.desc,
     url: tool.url,
+    password: tool.password,
     label: tool.buttonLabel,
     order: String(tool.order),
   });
