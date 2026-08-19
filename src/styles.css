@@ -1455,9 +1455,9 @@ button.ma-config.copyable:active {
   right: 0;
   bottom: 0;
   z-index: 44;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   width: 100%;
   min-width: 0;
@@ -1473,9 +1473,17 @@ button.ma-config.copyable:active {
 }
 :root[data-theme='light'] .app-footer { background: rgba(247, 249, 253, 0.97); }
 .footer-left,
+.footer-center,
 .footer-right { display:flex; align-items:center; min-width:0; gap:5px; white-space:nowrap; }
 .footer-left { overflow:hidden; }
-.footer-right { flex:none; margin-left:auto; }
+.footer-center {
+  justify-self: center;
+  color: var(--muted);
+  font-weight: 600;
+}
+.footer-right {
+  justify-self: end;
+}
 .footer-source-label { color:var(--muted); }
 .footer-link { flex:none; font-size:inherit; }
 .footer-sync { overflow:hidden; text-overflow:ellipsis; color:var(--muted); }
