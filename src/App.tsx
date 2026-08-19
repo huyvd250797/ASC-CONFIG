@@ -51,7 +51,7 @@ import type { SortState } from './components/common';
 
 /** Chu kỳ kiểm tra Google Sheet (ms). */
 const POLL_INTERVAL_MS = 15000;
-const APP_VERSION = '2.3.5';
+const APP_VERSION = '2.3.6';
 /** Màn hình hẹp thì lưới nhiều cột rất khó đọc, nên mặc định dùng dạng thẻ. */
 function isNarrowScreen() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 960px)').matches;
@@ -901,6 +901,7 @@ export default function App() {
           <button type="button" className="link-button footer-link" onClick={() => void openSource()}>Google Sheet ASC-CONFIG</button>
           <span className="footer-sync">· Cập nhật lần cuối: {formatFull(lastChangedAt)}</span>
         </div>
+        <div className="footer-center">© 2026 HuyVo. All rights reserved.</div>
         <div className="footer-right">
           <span>{configRecords.length} config</span>
           <span>· {noteRecords.length} lưu ý</span>

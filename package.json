@@ -1,7 +1,9 @@
 {
   "name": "asc-config",
   "private": true,
-  "version": "2.3.5",
+  "version": "2.3.6",
+  "author": "HuyVo",
+  "license": "UNLICENSED",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
